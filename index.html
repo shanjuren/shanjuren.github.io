@@ -147,12 +147,24 @@
     <article id="post-多线程" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/05/11/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+    </h1>
+  
+
+        
+        <a href="/2022/05/11/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" class="archive-article-date">
+  	<time datetime="2022-05-11T10:59:34.467Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2022-05-11</time>
+</a>
+        
+      </header>
+    
     <div class="article-entry" itemprop="articleBody">
       
-        <hr>
-<p>title: 多线程<br>tags: 并发 面试</p>
-<hr>
-<h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><h4 id="线程状态转换"><a href="#线程状态转换" class="headerlink" title="线程状态转换"></a>线程状态转换</h4><p><img src="https://img-blog.csdnimg.cn/20201010154244747.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0dLVERTUg==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+        <h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><h4 id="线程状态转换"><a href="#线程状态转换" class="headerlink" title="线程状态转换"></a>线程状态转换</h4><p><img src="https://img-blog.csdnimg.cn/20201010154244747.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0dLVERTUg==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
 <h2 id="volatile"><a href="#volatile" class="headerlink" title="volatile"></a>volatile</h2><p>为什么失效（MESI 总线嗅探机制）：<a target="_blank" rel="noopener" href="https://blog.csdn.net/Melodrammaaaaa/article/details/108647214">https://blog.csdn.net/Melodrammaaaaa/article/details/108647214</a></p>
 <p>为什么能读到（写屏障，写后会强行将高速缓冲区中的数据写入主内存中）：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36951116/article/details/108479964">https://blog.csdn.net/qq_36951116/article/details/108479964</a></p>
 <p>关键字，保证可见性但是不保证原子性，可以被称为改时通知。保证线程可见性，禁止指令重排序。被volatile修饰的变量在被其他线程使用时实际上是使用复制该变量的副本到对应线程中进行操作，当有进行更新操作时会立刻将变量写会到主线程中，并通知其他使用该变量的线程。实际上使用的是CPU的缓存一致性协议MESI。<br>禁止指令重排序：现代CPU执行指令不再是单个顺序执行，而是会将指令进行重排序并发执行指令。在单例模式中，使用JVM内部类的懒加载实现的方法中如果INSTANCE不加volatile的话在超高的并发当中会出现指令重排序（new对象时三步1.分配内存 2.初始化 3.赋值 重排序会优化指令顺序2，3更换执行顺序所以会造成执行异常）。解决单例模式中Double check中出现的问题。<br><img src="https://img-blog.csdnimg.cn/20200920231459807.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0dLVERTUg==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20200920231519739.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0dLVERTUg==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
@@ -324,6 +336,17 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">并发 面试</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -601,53 +624,6 @@
 
 
   
-    <article id="post-blog" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2022/05/11/blog/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Test" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -880,6 +856,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">测试</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">并发 面试</a>
               </li>
             
             <div class="clearfix"></div>
