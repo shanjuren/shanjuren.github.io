@@ -144,6 +144,149 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-内存和IO" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2023/05/24/%E5%86%85%E5%AD%98%E5%92%8CIO/">内存和IO</a>
+    </h1>
+  
+
+        
+        <a href="/2023/05/24/%E5%86%85%E5%AD%98%E5%92%8CIO/" class="archive-article-date">
+  	<time datetime="2023-05-24T10:01:54.661Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="文件类型"><a href="#文件类型" class="headerlink" title="文件类型"></a>文件类型</h1><p>man [man,1,tcp…..]：系统文档<br><img src="/assets/doc-images/io_1.png" alt="前缀"></p>
+<ul>
+<li><p>-普通文件（图片，视频，可执行文件）</p>
+</li>
+<li><p>d：目录</p>
+</li>
+<li><p>b：块设备 硬盘驱动器，光驱或软驱等设备</p>
+</li>
+<li><p>l：连接</p>
+<ul>
+<li>软连接，类似于windows的快捷方式，实际上是通过ln命令将某一文件链接到另外一个文件，但是两个文件Inode号是相同的，删除指向文件就会报错   ln -s /aa/a.txt /bb/b.txt</li>
+<li>硬链接：磁盘中实际存在文件，虚拟地址中和原始的文件Inode号不同但是实际物理地址指向同一个地方，但是在删除指向文件的时候并不会报错。   ln /aa/a.txt /bb/b.txt</li>
+</ul>
+</li>
+</ul>
+<p>stat /b.txt 可以看到文件的元数据</p>
+<ul>
+<li><p>c：字符设备 终端，里面存储不能被切割的字符型数据</p>
+</li>
+<li><p>s：socket</p>
+</li>
+<li><p>p：管道<br>前面的输出是后面的输入，| 的前后都会单独启动子进程，将子进程的执行结果交给| 后面的命令中，当做输入。可以用块命令实现（{echo $BASHPID ; read x;} | {cat ; echo $BASHPID; read y}）<br>$$ 优先级比 | 高，所以解释器先翻译执行$$,而$BASHPID也是代表当前Bash的进程ID，但是在解释器执行的时候优先级要比 | 低。</p>
+</li>
+<li><p>lsof -p /$/$(进程号) 查看某个进程打开的哪些文件（$ 当前bash），也可以看到对应文件的文件描述符。</p>
+</li>
+<li><p>pcstat  -pid $$ :内存中缓存页的状态（大小，编号等等）</p>
+</li>
+<li><p>read  x:通过键盘数据复制变量</p>
+</li>
+<li><p>dd：拷贝文件到固定地址或者文件中 dd if=/dev/zero of=mydisk.img bs=1048576 count=100</p>
+</li>
+<li><p>proc(目录)：映射的内核的虚拟文件系统，其中包含变量和所有程序的文件信息包括所有文件描述，开启的文件等等。</p>
+</li>
+<li><p>pcstat  /bin/bash ：可以看某个文件夹下被缓存数据页的数量和比例 佛挡杀佛</p>
+</li>
+<li><p>strace -ff -o out java ： 追踪线程的内核操作指令[strace -ff -o out java OSFileIO 0<br>指定文件名称可以跟踪这个文件所有相关的线程并打印其命令到文件中]</p>
+</li>
+<li><p>ldd：分析文件所依赖的所有源文件</p>
+</li>
+<li><p>挂载：将文件挂载到另一个文件目录下，那对于当前目录的一个拓展，再不改变其文件结构的基础下，将新挂载的目录就会成为文件内容的新区域。<br>losetup：losetup /dev/loop0 mydisk.image (把文件虚拟成块设备，模拟整个文件系统)<br>mount：它用于挂载Linux系统外的文件</p>
+</li>
+<li><p>重定向：Linux万物皆文件，所以对于每个命令和应用程序其实都是文件，而其中文件描述符（fd）可以用来该进程下不同线程对于IO的操作不同，0代表标准输入，1代表标准输出，2代表标准报错。每个进程或程序在运行的时候都有属于自己的VFS，所以进程之间是互相隔离的，只能通过内核来访问其他进程的信息。(read x 0&gt; test.txt)<br>重定向则是通过劫持每个进程fd来重新制定数据或者结果的来源或方向。&lt;代表读，&gt;代表写，&lt;&gt;代表读写。 重定向符号和fd中间不能有空白符或者其他符号。</p>
+</li>
+</ul>
+<p><img src="/assets/doc-images/io_2.png" alt="追踪线程的内核指令生成的文件"><br><img src="/assets/doc-images/io_3.png" alt="线程内核操作指令"></p>
+<h1 id="磁盘IO操作"><a href="#磁盘IO操作" class="headerlink" title="磁盘IO操作"></a>磁盘IO操作</h1><ul>
+<li>OutputStream:在每次写入时，如果有新数据产生就会调用内核命令write写入内存。</li>
+<li>BufferOutputStream:会存在一个8K的缓冲区，只有当8K的缓冲区存满后才会调用内核命令write,减少内核态和用户态的切换次数。<h2 id="pageCache"><a href="#pageCache" class="headerlink" title="pageCache"></a>pageCache</h2><img src="/assets/doc-images/io_4.png" alt="在这里插入图片描述"><br><img src="/assets/doc-images/io_5.png" alt="在这里插入图片描述"></li>
+</ul>
+<p><img src="/assets/doc-images/io_6.png" alt="在这里插入图片描述"></p>
+<h1 id="网络IO"><a href="#网络IO" class="headerlink" title="网络IO"></a>网络IO</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d9162722f189">tcpdump</a> -nn -i etho port 9090 :是一个用于截取网络分组，并输出分组内容的工具。</li>
+<li>netstat inatp：查看网络端口状态</li>
+<li>tcp：面向连接的可靠地传输协议<ul>
+<li>连接：三次握手，内核开辟资源</li>
+</ul>
+</li>
+<li>socket：四元组（CIP CPORT + SIP SPORT）,内核级的。</li>
+<li><img src="/assets/doc-images/io_7.png" alt="在这里插入图片描述"><br><img src="/assets/doc-images/io_8.png" alt="在这里插入图片描述"><br>ifconfig：可以看到某个网卡对于网络通信的限制，<br>MTU：数据包大小<br>MSS：数据内容大小</li>
+</ul>
+<p>socket建立连接，服务端内核指令<br><img src="/assets/doc-images/io_9.png" alt="socket建立连接，内核指令"></p>
+<h2 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a>BIO</h2><h5 id="模型图"><a href="#模型图" class="headerlink" title="模型图"></a>模型图</h5><p><img src="/assets/doc-images/io_10.png" alt="BIO下的socket"></p>
+<h5 id="socket-建立连接步骤"><a href="#socket-建立连接步骤" class="headerlink" title="socket 建立连接步骤"></a>socket 建立连接步骤</h5><p>1.new Socket对象（fd3 = new Socket()），向内核请求生成一个文件描述符<br>2.进行本机端口号的bind(bingd(fd3,8090))，fd和Port<br>3.监听(listen fd3)    该端口上所有的事件<br>PS：以上步骤进行完才能通过netstat -natp 看到本机端口的状态，使用状态还是监听状态<br>4.阻塞式接受客户端连接（accept）</p>
+<h2 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h2><p>非阻塞IO模型，在服务端accept连接的时候不会像BIO一样，阻塞线程直到有客户端建立连接。而是返回数值为-1的文件描述符来表示此时未有需要建立建立连接的客户端，如果有则返回大于0的文件描述符，并保存该链接到集合中，后面可以循环遍历连接来读取数据。<br><img src="/assets/doc-images/io_11.png" alt="在这里插入图片描述"></p>
+<h2 id="多路复用器"><a href="#多路复用器" class="headerlink" title="多路复用器"></a>多路复用器</h2><p>同步：app自己进行IO 的RW<br>异步：kenel完成RW，程序没有访问IO，只访问了buffer。目前只有Windows上的IOCP是纯异步的<br>阻塞：BIO<br>非阻塞：NIO<br>无论什么多路复用器都要遍历所有IO，询问。只不过NIO是每次遍历都要用户态内核态的进行切换。<br>不负责读写，只负责记录是否有可读可写的状态，可读（客户端信息发送），可写（send_que这个队列是空的，能往里写）</p>
+<h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><p>多路复用器，有文件描述符数量限制。在遍历所有IO的时候只进行了一次的用户态内核态的切换，过程中把fds传给内核，内核根据这次传递的fds来遍历和修改状态。<br><img src="/assets/doc-images/io_12.png" alt="在这里插入图片描述"></p>
+<h3 id="poll"><a href="#poll" class="headerlink" title="poll"></a>poll</h3><p>在遍历所有IO的时候只进行了一次的用户态内核态的切换，过程中把fds传给内核，内核根据这次传递的fds来遍历和修改状态。</p>
+<h3 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h3><p>Epoll在IO模型在建立Server端时，首先对于监听的端口申请到一个文件描述符，并使用该文件描述符绑定监听端口。在实现端口的监听后Server会调用epoll_create命令建立epoll相关信息（例如内核中用来保存每个链接FD的红黑树，用来保存红黑树的epoll的文件描述符RPFD等等epoll相关的信息）,其中EPFD用来保存被监听的FD所建立的所有新FD的数值，状态等等信息。创建了epoll所必须的信息后，通过epoll_ctl命令将监听端口的FD加入到红黑树中（每当有新的链接建立即分配新的FD时都会建立一个新的FD链表由红黑树进行数据的添加，链表主要是用来表示是否有需要读取的数据）。当Clinent端有新连接是都会在对应的红黑树中增加相应的文件描述符，如果有新数据进行传输时会将实际是数据写入分配给该文件描述符的buffer中还会将该连接的FD保存到对应的链表中，Server在进行读取时不用遍历所有已经建立连接的IO而是遍历链表中的所有IO。<img src="https://img-blog.csdnimg.cn/20200811220616691.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0dLVERTUg==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br><img src="/assets/doc-images/io_13.png" alt="在这里插入图片描述"></p>
+<h3 id="java-多路复用器封装"><a href="#java-多路复用器封装" class="headerlink" title="java 多路复用器封装"></a>java 多路复用器封装</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.bjmashibing.system.io;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.nio.ByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.*;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Iterator;</span><br><span class="line"><span class="keyword">import</span> java.util.Set;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SocketMultiplexingSingleThreadv1</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//马老师的坦克 一 二期</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">ServerSocketChannel</span> <span class="variable">server</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Selector</span> <span class="variable">selector</span> <span class="operator">=</span> <span class="literal">null</span>;   <span class="comment">//linux 多路复用器（select poll    epoll kqueue） nginx  event&#123;&#125;</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">port</span> <span class="operator">=</span> <span class="number">9090</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initServer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            server = ServerSocketChannel.open();</span><br><span class="line">            server.configureBlocking(<span class="literal">false</span>);</span><br><span class="line">            server.bind(<span class="keyword">new</span> <span class="title class_">InetSocketAddress</span>(port));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="comment">//如果在epoll模型下，open--》  epoll_create -&gt; fd3</span></span><br><span class="line">            selector = Selector.open();  <span class="comment">//  select  poll  *epoll  优先选择：epoll  但是可以 -D修正</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">//server 约等于 listen状态的 fd4</span></span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">            register</span></span><br><span class="line"><span class="comment">            如果：</span></span><br><span class="line"><span class="comment">            select，poll：jvm里开辟一个数组 fd4 放进去</span></span><br><span class="line"><span class="comment">            epoll：  epoll_ctl(fd3,ADD,fd4,EPOLLIN</span></span><br><span class="line"><span class="comment">            实际上是懒加载，只有在实际使用的时候才会真的去调用命令进行监听FD的注册</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            server.register(selector, SelectionKey.OP_ACCEPT);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">        initServer();</span><br><span class="line">        System.out.println(<span class="string">&quot;服务器启动了。。。。。&quot;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;  <span class="comment">//死循环</span></span><br><span class="line"></span><br><span class="line">                Set&lt;SelectionKey&gt; keys = selector.keys();</span><br><span class="line">                System.out.println(keys.size()+<span class="string">&quot;   size&quot;</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">                <span class="comment">//1,调用多路复用器(select,poll  or  epoll  (epoll_wait))</span></span><br><span class="line">                <span class="comment">/*</span></span><br><span class="line"><span class="comment">                select()是啥意思：</span></span><br><span class="line"><span class="comment">                1，select，poll  其实  内核的select（fd4）  poll(fd4)</span></span><br><span class="line"><span class="comment">                2，epoll：  其实 内核的 epoll_wait()</span></span><br><span class="line"><span class="comment">                *, 参数可以带时间：没有时间，0  ：  阻塞，有时间设置一个超时</span></span><br><span class="line"><span class="comment">                selector.wakeup()  结果返回0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">                懒加载：</span></span><br><span class="line"><span class="comment">                其实再触碰到selector.select()调用的时候触发了epoll_ctl的调用</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">                 */</span></span><br><span class="line">                <span class="keyword">while</span> (selector.select() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    Set&lt;SelectionKey&gt; selectionKeys = selector.selectedKeys();  <span class="comment">//返回的有状态的fd集合</span></span><br><span class="line">                    Iterator&lt;SelectionKey&gt; iter = selectionKeys.iterator();</span><br><span class="line">                    <span class="comment">//so，管你啥多路复用器，你呀只能给我状态，我还得一个一个的去处理他们的R/W。同步好辛苦！！！！！！！！</span></span><br><span class="line">                    <span class="comment">//  NIO  自己对着每一个fd调用系统调用，浪费资源，那么你看，这里是不是调用了一次select方法，知道具体的那些可以R/W了？</span></span><br><span class="line">                    <span class="comment">//幕兰，是不是很省力？</span></span><br><span class="line">                    <span class="comment">//我前边可以强调过，socket：  listen   通信 R/W</span></span><br><span class="line">                    <span class="keyword">while</span> (iter.hasNext()) &#123;</span><br><span class="line">                        <span class="type">SelectionKey</span> <span class="variable">key</span> <span class="operator">=</span> iter.next();</span><br><span class="line">                        iter.remove(); <span class="comment">//set  不移除会重复循环处理</span></span><br><span class="line">                        <span class="keyword">if</span> (key.isAcceptable()) &#123;</span><br><span class="line">                            <span class="comment">//看代码的时候，这里是重点，如果要去接受一个新的连接</span></span><br><span class="line">                            <span class="comment">//语义上，accept接受连接且返回新连接的FD对吧？</span></span><br><span class="line">                            <span class="comment">//那新的FD怎么办？</span></span><br><span class="line">                            <span class="comment">//select，poll，因为他们内核没有空间，那么在jvm中保存和前边的fd4那个listen的一起</span></span><br><span class="line">                            <span class="comment">//epoll： 我们希望通过epoll_ctl把新的客户端fd注册到内核空间</span></span><br><span class="line">                            acceptHandler(key);</span><br><span class="line">                        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (key.isReadable()) &#123;</span><br><span class="line">                            readHandler(key);  <span class="comment">//连read 还有 write都处理了</span></span><br><span class="line">                            <span class="comment">//在当前线程，这个方法可能会阻塞  ，如果阻塞了十年，其他的IO早就没电了。。。</span></span><br><span class="line">                            <span class="comment">//所以，为什么提出了 IO THREADS</span></span><br><span class="line">                            <span class="comment">//redis  是不是用了epoll，redis是不是有个io threads的概念 ，redis是不是单线程的</span></span><br><span class="line">                            <span class="comment">//tomcat 8,9  异步的处理方式  IO  和   处理上  解耦</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">acceptHandler</span><span class="params">(SelectionKey key)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">ServerSocketChannel</span> <span class="variable">ssc</span> <span class="operator">=</span> (ServerSocketChannel) key.channel();</span><br><span class="line">            <span class="type">SocketChannel</span> <span class="variable">client</span> <span class="operator">=</span> ssc.accept(); <span class="comment">//来啦，目的是调用accept接受客户端  fd7</span></span><br><span class="line">            client.configureBlocking(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">            <span class="type">ByteBuffer</span> <span class="variable">buffer</span> <span class="operator">=</span> ByteBuffer.allocate(<span class="number">8192</span>);  <span class="comment">//前边讲过了</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">// 0.0  我类个去</span></span><br><span class="line">            <span class="comment">//你看，调用了register</span></span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">            select，poll：jvm里开辟一个数组 fd7 放进去</span></span><br><span class="line"><span class="comment">            epoll：  epoll_ctl(fd3,ADD,fd7,EPOLLIN</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            client.register(selector, SelectionKey.OP_READ, buffer);</span><br><span class="line">            System.out.println(<span class="string">&quot;-------------------------------------------&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;新客户端：&quot;</span> + client.getRemoteAddress());</span><br><span class="line">            System.out.println(<span class="string">&quot;-------------------------------------------&quot;</span>);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">readHandler</span><span class="params">(SelectionKey key)</span> &#123;</span><br><span class="line">        <span class="type">SocketChannel</span> <span class="variable">client</span> <span class="operator">=</span> (SocketChannel) key.channel();</span><br><span class="line">        <span class="type">ByteBuffer</span> <span class="variable">buffer</span> <span class="operator">=</span> (ByteBuffer) key.attachment();</span><br><span class="line">        buffer.clear();</span><br><span class="line">        <span class="type">int</span> <span class="variable">read</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                read = client.read(buffer);</span><br><span class="line">                <span class="keyword">if</span> (read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    buffer.flip();</span><br><span class="line">                    <span class="keyword">while</span> (buffer.hasRemaining()) &#123;</span><br><span class="line">                        client.write(buffer);</span><br><span class="line">                    &#125;</span><br><span class="line">                    buffer.clear();</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (read == <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    client.close();</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">SocketMultiplexingSingleThreadv1</span> <span class="variable">service</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SocketMultiplexingSingleThreadv1</span>();</span><br><span class="line">        service.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">Java基础</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2023/05/24/%E5%86%85%E5%AD%98%E5%92%8CIO/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-RocketMQ" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -2441,82 +2584,6 @@
 
 
   
-    <article id="post-多线程" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2023/05/24/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
-    </h1>
-  
-
-        
-        <a href="/2023/05/24/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" class="archive-article-date">
-  	<time datetime="2023-05-24T08:41:09.152Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><h4 id="线程状态转换"><a href="#线程状态转换" class="headerlink" title="线程状态转换"></a>线程状态转换</h4><p><img src="/assets/doc-images/thread_status.jpg" alt="线程状态"></p>
-        
-          <a class="article-more-a" href="/2023/05/24/%E5%A4%9A%E7%BA%BF%E7%A8%8B/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">Java基础</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2023/05/24/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
@@ -2602,6 +2669,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
               </li>
              
@@ -2618,15 +2689,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">MQ</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Tool</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+                <a href="javascript:void(0)" class="js-tag color3">MQ</a>
               </li>
             
             <div class="clearfix"></div>
