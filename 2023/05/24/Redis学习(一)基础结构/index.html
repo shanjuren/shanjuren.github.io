@@ -6,22 +6,31 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>测试第一篇博客 | 开图的山巨人の领地</title>
+  <title>Redis学习(一)基础结构 | 开图的山巨人の领地</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="这是一个测试，兄dei编译命令12hexo cleanhexo d -g  图片不显示问题 搭建教程1https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;40fa2aefdf80  这是个测试，git化">
+  <meta name="description" content="RedisRedis是一款基于内存的K-V非关系型数据库.  在6.x之前Redis只使用Worker线程来进行数据的读取，计算，写入，这种只有单线程下的Redis会很大被IO瓶颈所限制还有本身会造成极大的硬件资源浪费。 在6.x之后Redis里面实际上并不是单线程工作，而是分为worker和io thread，其中worker只负责串行提供的计算服务，而io thread只提供数据的并行read">
 <meta property="og:type" content="article">
-<meta property="og:title" content="测试第一篇博客">
-<meta property="og:url" content="http://example.com/2023/05/22/Test/index.html">
+<meta property="og:title" content="Redis学习(一)基础结构">
+<meta property="og:url" content="http://example.com/2023/05/24/Redis%E5%AD%A6%E4%B9%A0(%E4%B8%80)%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84/index.html">
 <meta property="og:site_name" content="开图的山巨人の领地">
-<meta property="og:description" content="这是一个测试，兄dei编译命令12hexo cleanhexo d -g  图片不显示问题 搭建教程1https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;40fa2aefdf80  这是个测试，git化">
+<meta property="og:description" content="RedisRedis是一款基于内存的K-V非关系型数据库.  在6.x之前Redis只使用Worker线程来进行数据的读取，计算，写入，这种只有单线程下的Redis会很大被IO瓶颈所限制还有本身会造成极大的硬件资源浪费。 在6.x之后Redis里面实际上并不是单线程工作，而是分为worker和io thread，其中worker只负责串行提供的计算服务，而io thread只提供数据的并行read">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/assets/doc-images/test.jpg">
-<meta property="article:published_time" content="2023-05-22T13:09:51.930Z">
-<meta property="article:modified_time" content="2023-05-22T13:09:51.930Z">
+<meta property="og:image" content="http://example.com/assets/doc-images/redis-io.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/epoll.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/memcached.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/RDB.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/AOF.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/aof2.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/slave_sync.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/senstive_sync.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/sentinel.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/data_split.png">
+<meta property="article:published_time" content="2023-05-24T08:48:22.786Z">
+<meta property="article:modified_time" content="2023-05-24T08:57:13.980Z">
 <meta property="article:author" content="ght">
-<meta property="article:tag" content="测试">
+<meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/assets/doc-images/test.jpg">
+<meta name="twitter:image" content="http://example.com/assets/doc-images/redis-io.png">
   
     <link rel="alternative" href="/atom.xml" title="开图的山巨人の领地" type="application/atom+xml">
   
@@ -149,32 +158,128 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-Test" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-Redis学习(一)基础结构" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      测试第一篇博客
+      Redis学习(一)基础结构
     </h1>
   
 
         
-        <a href="/2023/05/22/Test/" class="archive-article-date">
-  	<time datetime="2023-05-22T13:09:51.930Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-22</time>
+        <a href="/2023/05/24/Redis%E5%AD%A6%E4%B9%A0(%E4%B8%80)%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84/" class="archive-article-date">
+  	<time datetime="2023-05-24T08:48:22.786Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="这是一个测试，兄dei"><a href="#这是一个测试，兄dei" class="headerlink" title="这是一个测试，兄dei"></a>这是一个测试，兄dei</h1><h2 id="编译命令"><a href="#编译命令" class="headerlink" title="编译命令"></a>编译命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo d -g</span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42030522/article/details/123075824">图片不显示问题</a><br><img src="/assets/doc-images/test.jpg" alt="测试"></p>
-<h2 id="搭建教程"><a href="#搭建教程" class="headerlink" title="搭建教程"></a>搭建教程</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.jianshu.com/p/40fa2aefdf80</span><br></pre></td></tr></table></figure>
-
-<p>这是个测试，git化</p>
+        <h1 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h1><p>Redis是一款基于内存的K-V非关系型数据库.</p>
+<ul>
+<li>在6.x之前Redis只使用Worker线程来进行数据的读取，计算，写入，这种只有单线程下的Redis会很大被IO瓶颈所限制还有本身会造成极大的硬件资源浪费。</li>
+<li>在6.x之后Redis里面实际上并不是单线程工作，而是分为worker和io thread，其中worker只负责串行提供的计算服务，而io thread只提供数据的并行read和write这样减少了Redis的处理时间的。但是实际上每个线程再对于数据的操作还是串行的单线程。</li>
+</ul>
+<p>Redis是二进制安全的（在使用Redis客户端进行数据的操作时均已字节数组作为数据输入或者输出流，在传输数据时，bai保证二进制数据的信息安全，也就du是不被篡改、破译等，如果被zhi攻击，能够及时检测出来。）在Redis中保存的其实是字节并且在所需类型容积不够的情况下会进行自动的扩容。<br>Redis支持数据一致性，即在Redis中进行数据新增，修改，删除后Redis数据也会做出相应的改变，防止出现脏读的现象，QJM<br>Redis的服务是无状态的，即针对每个请求服务器都会进行无差别的处理，每个请求中都包含服务器要求的所有请求参数（有状态服务，http的session，会针对每个请求都建立一个session在请求中也会保存sessionID以便可以获取到请求上下文信息）。<br>Linux提供了一个简单的Tcp连接的命令以供服务器轻量级连接数据库。nc ip port<br><img src="/assets/doc-images/redis-io.png" alt="Redis4.x&amp;6.x对比"></p>
+<h2 id="IO模型（epoll）"><a href="#IO模型（epoll）" class="headerlink" title="IO模型（epoll）"></a>IO模型（epoll）</h2><p>Redis中默认IO模型，相比于poll，epoll效率更高。服务端在收到客户端的TCP连接或者有新数据传输给服务端时，服务端在内核中维护了一个红黑树表用来记录所有有状态的文件描述符（&gt;1连接或者有数据传输的），每次再去遍历所有文件描述符(连接)的时候直接从红黑树中取对应有状态的文件描述符去读取其中的Buffer从而提高读写效率。Poll不会在内核中维护有状态的FD，所以每次遍历的时候会将所有的FD都遍历一遍。selector则效率更低会不断的切换内核态和用户态来占用CPU资源且其中FD连接有上限1024个。<br><img src="/assets/doc-images/epoll.png" alt="Epoll工作模型"></p>
+<h2 id="对比memcached"><a href="#对比memcached" class="headerlink" title="对比memcached"></a>对比memcached</h2><ul>
+<li>Memcached也是基于内存的的非关系型的数据库。memcached可以保存的数据库结构只有String一种，且server端不会提供任何关数据计算的逻辑，所以在接收数据进行保存的时候均是以字符串或者字符json串来进行保存。而在取数的时候总是对某个KEY的Value进行全量IO提取其中的所有数据在Client进行反序列化和计算。 数据向计算移动</li>
+<li>Redis相比于Memcached虽然也是基于内存的非关系型数据库但是Redis有非常丰富的Value类型，String，List，Set，Zset（有序数组），Hash。而且每种类型都提供的Server本地的算法，减少get时对于IO的压力。计算向数据移动。<br><img src="/assets/doc-images/memcached.png" alt="memcached&amp;Redis"></li>
+</ul>
+<h2 id="Redis数据类型"><a href="#Redis数据类型" class="headerlink" title="Redis数据类型"></a>Redis数据类型</h2><h4 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h4><ul>
+<li><p>字符串：append(追加字符串)、strlen(字符串的字节长度)<br>Redis中字符串保存的是字节数组，所以实际上字符串类型不仅仅可以保存字符串还可以保存JSON串，图片，文件即可以通过Redis可以形成一个基于内存的文件系统（FS）。</p>
+</li>
+<li><p>数值：incr(自加一)，decr(自减一)</p>
+</li>
+<li><p>bitmap：其中保存二进制的数值，所以客户端在get时会翻译成ascii码。<br>setbit(设置对应字符串指定偏移量上的位)，getbit(获取指定Key的ascii码)，bitop(对一个或多个二进制位的字符串进行元操作并把结果保存到新字符串上 bitop and/or/xor/not newkey key/[keys])<br>bitmap实际上通过位操作来统计矩阵中保存的信息，通过位运算可以更快的得到计算结果并保存。</p>
+</li>
+</ul>
+<h4 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h4><p>List中保存的是有序且可能重复的，其底层存储的是双向链表，并且存储有链表的头尾指针，这样可以保证从头和尾双向进行操作。</p>
+<h4 id="Hash（哈希表）"><a href="#Hash（哈希表）" class="headerlink" title="Hash（哈希表）"></a>Hash（哈希表）</h4><p>Redis的K-V结构中Value保存的是哈希表，也就是针对每个Value都有field来作为哈希的Key。每个 hash 可以存储 232 - 1 键值对。</p>
+<h4 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h4><p>Set中保存的是无序的集合，不维护排序也不维护插入顺序。主要用于集合操作但也会产生随机事件。在数量小的时候是使用intTable构成集合，当数据量变大后就会由hashTable来进行存储。<br>SRANDMEMBER key count：随机取出一个结果集，如果正数则取出不重复的结果集，如果大于memers只会取出所有数据，如果负数则一定会取出固定数量但是可重复的结果集。</p>
+<h4 id="ZSet（有序集合）"><a href="#ZSet（有序集合）" class="headerlink" title="ZSet（有序集合）"></a>ZSet（有序集合）</h4><p>实际上是Set集合，但是是维护可自定义顺序的集合,物理内存左小右大顺序，不会随着命令改变保存顺序。其底层实际上是由跳跃表实现的，在集合中的每个元素有三层维度（分值，数据，索引（index））该数据类型也支持集合操作交并差，再进行交并差时还会提供对于分值的处理(两分值取Max,Min或者求和，没有指定聚合函数的话默认是取sum)。其底层存储的数据结构为跳跃表实现。<br>跳跃表(类平衡树)主要有底层全数据元素构成的双向链表以及每个链表元素相同元素组成的子链表构成。但是每个链表元素相同元素的子链表的元素个数是完全随机的（随机早层），但是最大数量不超过64。其中子链表每个index下的都会与相邻最近存在相同参差得元素建立了连接。所以跳跃表查询的时候是从底层全数据构成的双向链表的最高层开始查询若是比该元素小则去一下该层的元素查询。（比目标元素小同层查询，比目标元素大降层查询    ）</p>
+<h2 id="Redis持久化"><a href="#Redis持久化" class="headerlink" title="Redis持久化"></a>Redis持久化</h2><p>Redis持久化有两种方式RDB和AOF：</p>
+<h3 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h3><p>该种方式是将当前进程产生的数据保存成二进制压缩文件保存到磁盘中，可以通过手动或者自动的方式出发：</p>
+<ul>
+<li>手动触发：<ul>
+<li>save：阻塞当前Redis服务器，知道RDB过程结束，会对服务器和内存造成较大的影响；</li>
+<li>bgsave：Redis进程会使用fork操作创建出一个子进程负责RDB的过程，完成后自动结束，该种方式只有在fork阶段会造成阻塞；</li>
+</ul>
+</li>
+<li>自动触发：<ul>
+<li> 1）使用save相关配置，如“save m n”。表示m秒内数据集存在n次修改 时，自动触发bgsave。</li>
+<li> 2）如果从节点执行全量复制操作，主节点自动执行bgsave生成RDB文件并发送给从节点，更多细节见6.3节介绍的复制原理。</li>
+<li>3）执行debug reload命令重新加载Redis时，也会自动触发save操作。</li>
+<li>4）默认情况下执行shutdown命令时，如果没有开启AOF持久化功能则 自动执行bgsave。<br>RDB文件保存在dir配置指定的目录下，文件名通过dbfilename配 置指定。可以通过执行config set dir{newDir}和config set dbfilename{newFileName}运行期动态执行，当下次运行时RDB文件会保存到新目录。</li>
+</ul>
+</li>
+</ul>
+<h6 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h6><p>因为RDB是一个紧凑的二进制文件，代表某个时间段Redis上的快照，非常适合备份或者全量复制，但是因为时间过长所以容易造成Redis服务器阻塞但是从数据恢复速度来说RDF时间远远小于AOF。</p>
+<h6 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h6><p>无法做到秒级或者实时的持久化，在不影响Redis的使用情况下频繁的持久化会创建大量子进程占用资源，且Redis不同版本中存在多种格式的RDB文件，不同版本的RDB文件无法做到兼容。<br><img src="/assets/doc-images/RDB.png" alt="在这里插入图片描述"></p>
+<h3 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h3><p>AOF方式持久化是里独立日志的方式实时记录每次的命令，重启时再重新执行AOF文件中的命令以达到数据恢复的功能，该种方法主要数据实时持久化问题，目前主流持久化方法。<br>开启Redis的AOF持久化功能需要配置appendonly yes,默认是不开启的，AOF文件名通过appendfilename配置设定，还可以设定文件路径。AOF的工作流程大概分为四个命令写入（append）,文件同步（sync）,文件重写（rewrite）、重启加载（load）<br><img src="/assets/doc-images/AOF.png" alt="AOF工作流程"><br>其中AOF文件写入并不是直接写入到文件磁盘中，而是写入到缓存中避免将压力直接交给磁盘IO，而且Redis还提供多种缓存同步磁盘的策略可以在安全和性能方面自定义平衡。<br>AOF文件不会一直无限制的增长，而是在文件达到一定大小后会进行文件的重写，重写实际上是对AOF文件的压缩，而能产生压缩的方式有很多：</p>
+<ul>
+<li>Redis中超时的数据不会再写入文件中；</li>
+<li>会排除无效指令 例如set att,set aaa等等；</li>
+<li>对于命令进行优化合并，例如ADD a 1,ADD a 2,ADD a 3。会合并成一个命令；但是为了方式单条命令过长溢出缓冲区对于Set，List，Hash，Zset等会以64个元素作为界限；</li>
+</ul>
+<p>也可以用其他的方式来出发重写：</p>
+<ul>
+<li>手动触发：直接调用bgrewriteaof命令。</li>
+<li>自动触发：根据auto-aof-rewrite-min-size和auto-aof-rewrite-percentage参数确定自动触发时机<br><img src="/assets/doc-images/aof2.png" alt="在这里插入图片描述"></li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d3ba7b8ad964">Redis持久化</a></p>
+<h2 id="Redis过期淘汰制"><a href="#Redis过期淘汰制" class="headerlink" title="Redis过期淘汰制"></a>Redis过期淘汰制</h2><p>Redis的过期淘汰制实际上分为两个部分：过期删除，内存淘汰</p>
+<ul>
+<li>过期删除：实际上是由定时删除+惰性删除构成，Redis默认是每个100ms就随机抽取一批设置了过期时间的Key进行检查删除（随机抽取减小的CPU单次检查的压力），而惰性删除则是如果该key已经超过过期时间，除非去查询该key否则的话该key会一直停留在内存之中直到定时删除。</li>
+<li>内存淘汰：Redis如果存在大量为删除的过期key会造成内存溢出所以针对内存会有一系列策略来保证Redis内存健康：<ul>
+<li>volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰</li>
+<li>volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰</li>
+<li>volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰</li>
+<li>allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key（这个是最常用的）.</li>
+<li>allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰</li>
+<li>no-eviction：禁止驱逐数据，也就是说当内存不足以容纳新写入数据时，新写入操作会报错。这个应该没人使用吧！</li>
+</ul>
+</li>
+</ul>
+<h2 id="Redis集群"><a href="#Redis集群" class="headerlink" title="Redis集群"></a>Redis集群</h2><h4 id="集群同步"><a href="#集群同步" class="headerlink" title="集群同步"></a>集群同步</h4><p>数据同步有两种模式强一致性和弱一致性：</p>
+<ul>
+<li>强一致性：主节点在有更新数据的命令进来后会同步阻塞将该命令同步到各个从节点，知道主节点收到所有从节点都已经同步成功后才会结束阻塞请求返回，该同步方式会破坏Redis的高可用但是不会造成数据丢失；</li>
+<li>弱一致性：主节点对于从节点的数据同步采用异步方式，主节点执行完命令后异步将命令发送到各个从节点后不再阻塞二十直接返回请求，这种方式会造成从节点数据丢失；<br><img src="/assets/doc-images/slave_sync.png" alt="数据一致性"></li>
+</ul>
+<p> Redis集群有三种模式主从模式，哨兵模式，集群模式</p>
+<ul>
+<li><p>主从模式：Redis节点被主节点（负责读写）和从节点（只负责读），只能存在一个主节点。一个主节点可以绑定多个从节点但是一个从节点只能属于一个主节点，主节点挂了不影响从节点读写且不会重新自助选举，但是Redis将不再支持写数据，从节点挂了不影响读写并且重启后可以从主节点重新同步数据恢复使用。<br>从节点在启动或者重启后会向主节点发送SYNC命令，主节点会将这段时间保存的RDB快照和缓存的命令都发给从节点达到数据一致。主从模式不具备高可用<br><img src="/assets/doc-images/senstive_sync.png" alt="主从复制模式"></p>
+</li>
+<li><p>哨兵模式：在Redis主从节点之外会增加第三种节点Sentinel(哨兵节点)，该节点可以布置成单个也可以布置成Sentinel集群。该节点主要是用来监控和管理目前Redis中所有节点，当有主节点挂掉后哨兵节点会在剩下的所有从节点中主动选举出来，首先修改当前已经变成主节点的从节点配置文件以及账号密码等信息，其次会修改其他从节点的信息变更其从节点中所依赖主节点的信息（slaveof属性会指向新的master）。而原来之前的挂掉的主节点重启后不再担任主节点。<br>工作流程：哨兵节点启动后会持续监听Master,slave以及其他哨兵节点的心跳，以每秒一次的频率向其他节点发送ping命令。若是Master没有正常的返回(超时时间也可以设置)Ping心跳则该Master会被这个Sentinel节点标记为主观下线，如果有足够(可以手动设置)的Sentinel节点标记该Master为主观下线则该节点在Sentinel中会被标记为客观下线，一般情况下每个Sentinel每隔10S会向各个节点发送INFO命令来同步信息，当一个Master被标记为客观下线后该发送INFO给Slave消息的时间会从10S变成1s。<br>当使用Sentinel模式时，客户端连接的不再是直接连接Master或者Slave节点，而是连接Sentinel节点，通过哨兵节点找到当前Master节点信息。</p>
+<ul>
+<li>Sentinel选举：<br>Sentinel如果要成为集群的话至少要大于等于三个，因为Sentinel选举的最低票数计算公式为（Sentinel节点数/2 + 1）如果节点只有两个的话剩下那个节点永远不会成为主节点。<br><img src="/assets/doc-images/sentinel.png" alt="Sentinel选举"></li>
+</ul>
+</li>
+<li><p>集群模式：该模式下由多个Master以及下属的Slave构成Redis集群，该种模式下至少由六个节点构成，每个节点之间通过ping-pong来进行通信。该模式下的数据存储使用hash槽来进行数据分片，多个Master之间存储的完全不同的数据，Redisjian将Hash的Key划分为16484个hash槽，每个Master节点映射到不同的hash槽这样Redis集群中的数据可以均匀的存储在节点中。并且在扩容或者故障转移时只需将故障节点的槽位和数据进行转移或者将已分配的槽位进行重新拆分给新的节点就可以达到故障转移和扩容，在过程中不会影响其他的Master节点运行。 该模式主要使用crc16一种校验算法来实现hash。</p>
+</li>
+</ul>
+<h2 id="数据分片"><a href="#数据分片" class="headerlink" title="数据分片"></a>数据分片</h2><p>单节点容量优先所以就需要数据分片：<br><img src="/assets/doc-images/data_split.png" alt="在这里插入图片描述"></p>
+<h2 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h2><ul>
+<li>缓存穿透问题：<ul>
+<li>原因：因为缓存中没有高频的请求的数据，所以请求数据的压力全部转移到了数据库导致缓存失效不再分担数据压力，在节点扩容新增节点的时候也会出现这样的问题。因为再使用一致性哈希算法进行节点分片时虽然将数据进行全量重新计算，但是还是会将该节点前后相邻的两个节点上的部分数据进行重新调整所以再调整过程中数据这些数据是无法被hash到的就会造成缓存穿透。</li>
+<li>方案：可以使用布隆过滤器来进行筛选是请求数据是否被缓存到，布隆过滤器使用为预算且容量可以达到亿级别。或者从代码层级对无缓存的数据进行手动重新缓存。</li>
+</ul>
+</li>
+<li>缓存雪崩：<ul>
+<li>原因：因为某种原因造成缓存宕机导致请求压力全部到数据库而导致数据崩溃，或者在大面积更新缓存数据</li>
+<li>方案：事前增加备份节点或多节点共存（哨兵模式或Cluster）,事中使用本地缓存或者使用熔断器进行降级服务，事后：持久化缓存恢复数据，</li>
+</ul>
+</li>
+<li>缓存DB数据不一致问题：<ul>
+<li>原因：高并发情况下缓存更新成功但数据库更新失败</li>
+<li>方案：再进行数据更新时，使用内存队列，在数据更新之前先将该缓存数据设置过期时间， 如果此时有用到缓存的查询则去检查该缓存的Key过期时间，如果该缓存已经过期则将查询的命令加入到内存队列中，等数据库数据更新完成后再依次将内存队列中同步缓存的请求执行。</li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/miss1181248983/article/details/90056960">Redis集群详解</a></p>
 
       
 
@@ -209,7 +314,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">测试</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">Redis</a>
         		</li>
       		
 		</ul>
@@ -265,7 +370,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/05/22/Test/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/05/24/Redis%E5%AD%A6%E4%B9%A0(%E4%B8%80)%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -279,15 +384,20 @@
   
 <nav id="article-nav">
   
-    <a href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%89)Spring%E6%95%B4%E5%90%88/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2023/05/24/Dubbo%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          Mybatis源码阅读(三)Spring整合
+          (no title)
         
       </div>
     </a>
   
+  
+    <a href="/2023/05/24/MySQL%E5%9F%BA%E7%A1%80/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">MySQL学习(一)基础结构</div>
+      <i class="icon-circle-right"></i>
+    </a>
   
 </nav>
 
@@ -312,7 +422,7 @@
                 </span>
                 <span class="tooltip-content">
                     <div class="toc-article">
-                    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA%E6%B5%8B%E8%AF%95%EF%BC%8C%E5%85%84dei"><span class="toc-number">1.</span> <span class="toc-text">这是一个测试，兄dei</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%91%BD%E4%BB%A4"><span class="toc-number">1.1.</span> <span class="toc-text">编译命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">搭建教程</span></a></li></ol></li></ol>
+                    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis"><span class="toc-number">1.</span> <span class="toc-text">Redis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#IO%E6%A8%A1%E5%9E%8B%EF%BC%88epoll%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">IO模型（epoll）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94memcached"><span class="toc-number">1.2.</span> <span class="toc-text">对比memcached</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.3.</span> <span class="toc-text">Redis数据类型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#String%EF%BC%88%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%89"><span class="toc-number">1.3.0.1.</span> <span class="toc-text">String（字符串）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#List%EF%BC%88%E5%88%97%E8%A1%A8%EF%BC%89"><span class="toc-number">1.3.0.2.</span> <span class="toc-text">List（列表）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hash%EF%BC%88%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%89"><span class="toc-number">1.3.0.3.</span> <span class="toc-text">Hash（哈希表）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Set%EF%BC%88%E9%9B%86%E5%90%88%EF%BC%89"><span class="toc-number">1.3.0.4.</span> <span class="toc-text">Set（集合）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ZSet%EF%BC%88%E6%9C%89%E5%BA%8F%E9%9B%86%E5%90%88%EF%BC%89"><span class="toc-number">1.3.0.5.</span> <span class="toc-text">ZSet（有序集合）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis%E6%8C%81%E4%B9%85%E5%8C%96"><span class="toc-number">1.4.</span> <span class="toc-text">Redis持久化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB"><span class="toc-number">1.4.1.</span> <span class="toc-text">RDB</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%BC%98%E7%82%B9"><span class="toc-number">1.4.1.0.0.1.</span> <span class="toc-text">优点</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%BC%BA%E7%82%B9"><span class="toc-number">1.4.1.0.0.2.</span> <span class="toc-text">缺点</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AOF"><span class="toc-number">1.4.2.</span> <span class="toc-text">AOF</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis%E8%BF%87%E6%9C%9F%E6%B7%98%E6%B1%B0%E5%88%B6"><span class="toc-number">1.5.</span> <span class="toc-text">Redis过期淘汰制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis%E9%9B%86%E7%BE%A4"><span class="toc-number">1.6.</span> <span class="toc-text">Redis集群</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9B%86%E7%BE%A4%E5%90%8C%E6%AD%A5"><span class="toc-number">1.6.0.1.</span> <span class="toc-text">集群同步</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E7%89%87"><span class="toc-number">1.7.</span> <span class="toc-text">数据分片</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="toc-number">1.8.</span> <span class="toc-text">问题：</span></a></li></ol></li></ol>
                     </div>
                 </span>
             </div>
@@ -329,8 +439,8 @@
   <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
 <script>
   var cloudTieConfig = {
-    url: "http://example.com/2023/05/22/Test/", 
-    sourceId: "Test",
+    url: "http://example.com/2023/05/24/Redis%E5%AD%A6%E4%B9%A0(%E4%B8%80)%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84/", 
+    sourceId: "Redis学习(一)基础结构",
     productKey: "true",
     target: "cloud-tie-wrapper"
   };

@@ -6,22 +6,24 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>测试第一篇博客 | 开图的山巨人の领地</title>
+  <title>开图的山巨人の领地</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="这是一个测试，兄dei编译命令12hexo cleanhexo d -g  图片不显示问题 搭建教程1https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;40fa2aefdf80  这是个测试，git化">
+  <meta name="description" content="Dubbo结构介绍   服务接口层（Service）:与实际业务逻辑相关，根据消费者和生产者业务设计对应接口和实现； 配置层（Config）:对外配置接口，负责Dubbo中生成各种配置类，例如协议，生产者以及具体的Bean信息的等等，方便再暴露和做负载均衡时直接使用 源码 服务代理层（Proxy）:根据上一层生成的各个配置信息，两端根据ProxyFactory生成代理信息Invoker。 服务注册">
 <meta property="og:type" content="article">
-<meta property="og:title" content="测试第一篇博客">
-<meta property="og:url" content="http://example.com/2023/05/22/Test/index.html">
+<meta property="og:title" content="开图的山巨人の领地">
+<meta property="og:url" content="http://example.com/2023/05/24/Dubbo%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/index.html">
 <meta property="og:site_name" content="开图的山巨人の领地">
-<meta property="og:description" content="这是一个测试，兄dei编译命令12hexo cleanhexo d -g  图片不显示问题 搭建教程1https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;40fa2aefdf80  这是个测试，git化">
+<meta property="og:description" content="Dubbo结构介绍   服务接口层（Service）:与实际业务逻辑相关，根据消费者和生产者业务设计对应接口和实现； 配置层（Config）:对外配置接口，负责Dubbo中生成各种配置类，例如协议，生产者以及具体的Bean信息的等等，方便再暴露和做负载均衡时直接使用 源码 服务代理层（Proxy）:根据上一层生成的各个配置信息，两端根据ProxyFactory生成代理信息Invoker。 服务注册">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/assets/doc-images/test.jpg">
-<meta property="article:published_time" content="2023-05-22T13:09:51.930Z">
-<meta property="article:modified_time" content="2023-05-22T13:09:51.930Z">
+<meta property="og:image" content="http://example.com/assets/doc-images/dubbo_strcuts.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/dubbo_strcuts_2.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/code_extends.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/components.png">
+<meta property="article:published_time" content="2023-05-24T08:58:49.943Z">
+<meta property="article:modified_time" content="2023-05-24T09:02:47.659Z">
 <meta property="article:author" content="ght">
-<meta property="article:tag" content="测试">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/assets/doc-images/test.jpg">
+<meta name="twitter:image" content="http://example.com/assets/doc-images/dubbo_strcuts.png">
   
     <link rel="alternative" href="/atom.xml" title="开图的山巨人の领地" type="application/atom+xml">
   
@@ -149,32 +151,534 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-Test" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-Dubbo源码阅读" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      测试第一篇博客
-    </h1>
-  
-
-        
-        <a href="/2023/05/22/Test/" class="archive-article-date">
-  	<time datetime="2023-05-22T13:09:51.930Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-22</time>
-</a>
-        
-      </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="这是一个测试，兄dei"><a href="#这是一个测试，兄dei" class="headerlink" title="这是一个测试，兄dei"></a>这是一个测试，兄dei</h1><h2 id="编译命令"><a href="#编译命令" class="headerlink" title="编译命令"></a>编译命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo d -g</span><br></pre></td></tr></table></figure>
+        <h1 id="Dubbo"><a href="#Dubbo" class="headerlink" title="Dubbo"></a>Dubbo</h1><h2 id="结构介绍"><a href="#结构介绍" class="headerlink" title="结构介绍"></a>结构介绍</h2><p><img src="/assets/doc-images/dubbo_strcuts.png" alt="在这里插入图片描述"></p>
+<p><img src="/assets/doc-images/dubbo_strcuts_2.png" alt="Dubbo层级划分"></p>
+<ul>
+<li>服务接口层（Service）:与实际业务逻辑相关，根据消费者和生产者业务设计对应接口和实现；</li>
+<li>配置层（Config）:对外配置接口，负责Dubbo中生成各种配置类，例如协议，生产者以及具体的Bean信息的等等，方便再暴露和做负载均衡时直接使用 <a target="_blank" rel="noopener" href="https://blog.csdn.net/zhaodongchao1992/article/details/103452829">源码</a><br><img src="/assets/doc-images/code_extends.png" alt="在这里插入图片描述"></li>
+<li>服务代理层（Proxy）:根据上一层生成的各个配置信息，两端根据ProxyFactory生成代理信息Invoker。</li>
+<li>服务注册层（Registry）:将已经生成Invoker信息导出并注册到注册中心进行服务暴露，此时生产者提供的服务可以被发现。</li>
+<li>集群层（Cluster）：封装提供者路由以及负载均衡，并连接注册中心以Invoker为中心扩展接口为Cluster,Directory,Router,LoadBalance;<ul>
+<li>Invoker：是Provider的一个可调用Service的抽象，Invoker中封装了Provider地址以及Service接口信息；</li>
+<li> Directory表示多个Invoker，从注册中心中不断拉去，推送变更。里面包含多个Invoker，Cluster将Directory多个相同的Invoker伪装成一个Invoker对上层透明调用，伪装的过程包含了容错逻辑，调用失败重试逻辑等等；</li>
+<li> Router负责从多个Invoker中按路由规则选出子集；</li>
+<li>LoadBalance负责从多个Invoker中选择一个用于本次调用，通过选择或者自定义的负载均衡算法来选择多个相同Invoker中的某一个，失败后重选；<br> <img src="/assets/doc-images/components.png" alt="在这里插入图片描述"></li>
+</ul>
+</li>
+</ul>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>1.zookeeper注册发现中心<br>2.pom引用，客户端</p>
+<h5 id="1-创建注册发现中心Zookeeper"><a href="#1-创建注册发现中心Zookeeper" class="headerlink" title="1.创建注册发现中心Zookeeper"></a>1.创建注册发现中心Zookeeper</h5><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 拉去镜像启动，没有什么特殊参数配置</span></span><br></pre></td></tr></table></figure>
 
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42030522/article/details/123075824">图片不显示问题</a><br><img src="/assets/doc-images/test.jpg" alt="测试"></p>
-<h2 id="搭建教程"><a href="#搭建教程" class="headerlink" title="搭建教程"></a>搭建教程</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.jianshu.com/p/40fa2aefdf80</span><br></pre></td></tr></table></figure>
+<h5 id="2-生产者"><a href="#2-生产者" class="headerlink" title="2.生产者"></a>2.生产者</h5><p>Pom引用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- Aapche Dubbo --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;<span class="number">2.7</span><span class="number">.1</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;dubbo&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;<span class="number">2.7</span><span class="number">.1</span>&lt;/version&gt;</span><br><span class="line">	&lt;exclusions&gt;</span><br><span class="line">		&lt;exclusion&gt;</span><br><span class="line">			&lt;groupId&gt;org.slf4j&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;</span><br><span class="line">		&lt;/exclusion&gt;</span><br><span class="line">	&lt;/exclusions&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>基础配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">## dubbo提供服务基础包</span><br><span class="line">dubbo.scan.base-packages=com.dubbo.provide</span><br><span class="line">## dubbo远程调用时使用的协议，支持dubbo,Rmi,Hessian协议</span><br><span class="line">dubbo.protocol.name=dubbo</span><br><span class="line">## 当前生产者提供服务应用的端口</span><br><span class="line">dubbo.protocol.port=<span class="number">8081</span></span><br><span class="line">## 当前生产者提供服务应用的IP地址</span><br><span class="line">#dubbo.protocol.host=<span class="number">192.168</span><span class="number">.101</span><span class="number">.106</span></span><br><span class="line">## 当前生产者簇名称 用于消费者负载均衡</span><br><span class="line">dubbo.provider.cluster=failover</span><br><span class="line">##  注册中心，发现中心</span><br><span class="line">dubbo.registry.address=zookeeper:<span class="comment">//39.108.151.72:2181</span></span><br></pre></td></tr></table></figure>
+<p>生产者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.dubbo.provide.service;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.config.annotation.Service;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: haitao.gao</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span>:</span></span><br><span class="line"><span class="comment"> * 随机：loadbalance=&quot;random&quot;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 轮循：loadbalance=&quot;roundrobin&quot;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 最少活跃数：loadbalance=&quot;leastactive&quot;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 一致性Hash：loadbalance=&quot;consistenthash&quot;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/11/26 19:18</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span>: 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Service(version = &quot;1.0.0&quot; , executes = 12,interfaceClass = ProvideService.class,delay = 10,weight = 50,group = &quot;test&quot;,loadbalance = &quot;roundrobin&quot;)</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProvideServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">ProvideService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">Integer</span> <span class="variable">index</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getIndex</span><span class="params">()</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;这是服务一&quot;</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="3-消费者"><a href="#3-消费者" class="headerlink" title="3.消费者"></a>3.消费者</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.dubbo.provide;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.dubbo.provide.service.ProvideService;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.config.annotation.Reference;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMethod;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: haitao.gao</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span>:</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/11/26 21:03</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span>: 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;/v1/test&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomerController</span> &#123;</span><br><span class="line"> </span><br><span class="line">     <span class="comment">// 通过version来控制相同生产者不同版本的调用</span></span><br><span class="line">     <span class="comment">// time，out来控制失败机制</span></span><br><span class="line">     <span class="comment">// group集群模式下可以指定调用某个组下的生产者进行负载均衡</span></span><br><span class="line">    <span class="meta">@Reference(version = &quot;1.0.0&quot;,timeout = 10000,retries = 3,group = &quot;test&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> ProvideService provideService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(value = &quot;/dubbo&quot;,method = RequestMethod.GET)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">testDubbo</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;\n*****************\n&quot;</span>+provideService.getIndex().toString()+<span class="string">&quot;\n****************&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="对比SpringCloud体系"><a href="#对比SpringCloud体系" class="headerlink" title="对比SpringCloud体系"></a>对比SpringCloud体系</h2><table>
+<thead>
+<tr>
+<th>组件/功能</th>
+<th>Dubbo</th>
+<th>SpringCloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>注册中心</td>
+<td>zookeeper,multicast,redis,simple</td>
+<td>Eureka</td>
+</tr>
+<tr>
+<td>服务监控</td>
+<td>Dubbo-monitor</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td>熔断器</td>
+<td>不完善</td>
+<td>Hystrix</td>
+</tr>
+<tr>
+<td>服务网关</td>
+<td>无</td>
+<td>Gateway,Zuul</td>
+</tr>
+<tr>
+<td>分布式设置</td>
+<td>无</td>
+<td>Config</td>
+</tr>
+<tr>
+<td>服务追踪</td>
+<td>无</td>
+<td>Sleuth</td>
+</tr>
+<tr>
+<td>消息总线</td>
+<td>无</td>
+<td>Bus</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>无</td>
+<td>Stream</td>
+</tr>
+<tr>
+<td>批量任务</td>
+<td>无</td>
+<td>Task</td>
+</tr>
+<tr>
+<td>Dubbo使用PRC通信，可自定义通信协议，SpringCloud使用http或https进行通信，底层均使用TCP</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="注册中心"><a href="#注册中心" class="headerlink" title="注册中心"></a>注册中心</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Zookeeper注册中心</td>
+<td>Stable</td>
+<td>支持基于网络的集群方式，有广泛周边开源产品，建议使用dubbo-2.3.3以上版本（推荐使用）</td>
+<td>依赖于Zookeeper的稳定性</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+<tr>
+<td>Redis注册中心</td>
+<td>Stable</td>
+<td>支持基于客户端双写的集群方式，性能高</td>
+<td>要求服务器时间同步，用于检查心跳过期脏数据</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+<tr>
+<td>Multicast注册中心</td>
+<td>Tested</td>
+<td>去中心化，不需要安装注册中心</td>
+<td>依赖于网络拓扑和路由，跨机房有风险</td>
+<td>小规模应用或开发测试环境</td>
+<td></td>
+</tr>
+<tr>
+<td>Simple注册中心</td>
+<td>Tested</td>
+<td>Dogfooding，注册中心本身也是一个标准的RPC服务</td>
+<td>没有集群支持，可能单点故障</td>
+<td>试用</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="支持的协议"><a href="#支持的协议" class="headerlink" title="支持的协议"></a>支持的协议</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Simple监控中心</td>
+<td>Stable</td>
+<td>支持JFreeChart统计报表</td>
+<td>没有集群支持，可能单点故障，但故障后不影响RPC运行</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dubbo协议</td>
+<td>Stable</td>
+<td>采用NIO复用单一长连接，并使用线程池并发处理请求，减少握手和加大并发效率，性能较好（推荐使用）</td>
+<td>在大文件传输时，单一连接会成为瓶颈</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Rmi协议</td>
+<td>Stable</td>
+<td>可与原生RMI互操作，基于TCP协议</td>
+<td>偶尔会连接失败，需重建Stub</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Hessian协议</td>
+<td>Stable</td>
+<td>可与原生Hessian互操作，基于HTTP协议</td>
+<td>需hessian.jar支持，http短连接的开销大</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="通信框架"><a href="#通信框架" class="headerlink" title="通信框架"></a>通信框架</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Netty Transporter</td>
+<td>Stable</td>
+<td>JBoss的NIO框架，性能较好（推荐使用）</td>
+<td>一次请求派发两种事件，需屏蔽无用事件</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Mina Transporter</td>
+<td>Stable</td>
+<td>老牌NIO框架，稳定</td>
+<td>待发送消息队列派发不及时，大压力下，会出现FullGC</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Grizzly Transporter</td>
+<td>Tested</td>
+<td>Sun的NIO框架，应用于GlassFish服务器中</td>
+<td>线程池不可扩展，Filter不能拦截下一Filter</td>
+<td>试用</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="序列化与反序列化方式"><a href="#序列化与反序列化方式" class="headerlink" title="序列化与反序列化方式"></a>序列化与反序列化方式</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hessian Serialization</td>
+<td>Stable</td>
+<td>性能较好，多语言支持（推荐使用）</td>
+<td>Hessian的各版本兼容性不好，可能和应用使用的Hessian冲突，Dubbo内嵌了hessian3.2.1的源码</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Dubbo Serialization</td>
+<td>Tested</td>
+<td>通过不传送POJO的类元信息，在大量POJO传输时，性能较好</td>
+<td>当参数对象增加字段时，需外部文件声明</td>
+<td>试用</td>
+<td></td>
+</tr>
+<tr>
+<td>Json Serialization</td>
+<td>Tested</td>
+<td>纯文本，可跨语言解析，缺省采用FastJson解析</td>
+<td>性能较差</td>
+<td>试用</td>
+<td></td>
+</tr>
+<tr>
+<td>Java Serialization</td>
+<td>Stable</td>
+<td>Java原生支持</td>
+<td>性能较差</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="代理对象实现"><a href="#代理对象实现" class="headerlink" title="代理对象实现"></a>代理对象实现</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Javassist ProxyFactory</td>
+<td>Stable</td>
+<td>通过字节码生成代替反射，性能比较好（推荐使用）</td>
+<td>依赖于javassist.jar包，占用JVM的Perm内存，Perm可能要设大一些：java -XX:PermSize=128m</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Jdk ProxyFactory</td>
+<td>Stable</td>
+<td>JDK原生支持</td>
+<td>性能较差</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="容错机制"><a href="#容错机制" class="headerlink" title="容错机制"></a>容错机制</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Failover Cluster</td>
+<td>Stable</td>
+<td>失败自动切换，当出现失败，重试其它服务器，通常用于读操作（推荐使用）</td>
+<td>重试会带来更长延迟</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Failfast Cluster</td>
+<td>Stable</td>
+<td>快速失败，只发起一次调用，失败立即报错,通常用于非幂等性的写操作</td>
+<td>如果有机器正在重启，可能会出现调用失败</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Failsafe Cluster</td>
+<td>Stable</td>
+<td>失败安全，出现异常时，直接忽略，通常用于写入审计日志等操作</td>
+<td>调用信息丢失</td>
+<td>可用于生产环境</td>
+<td>Monitor</td>
+</tr>
+<tr>
+<td>Failback Cluster</td>
+<td>Tested</td>
+<td>失败自动恢复，后台记录失败请求，定时重发，通常用于消息通知操作</td>
+<td>不可靠，重启丢失</td>
+<td>可用于生产环境</td>
+<td>Registry</td>
+</tr>
+<tr>
+<td>Forking Cluster</td>
+<td>Tested</td>
+<td>并行调用多个服务器，只要一个成功即返回，通常用于实时性要求较高的读操作</td>
+<td>需要浪费更多服务资源</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+<tr>
+<td>Broadcast Cluster</td>
+<td>Tested</td>
+<td>广播调用所有提供者，逐个调用，任意一台报错则报错，通常用于更新提供方本地状态</td>
+<td>速度慢，任意一台报错则报错</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="负载均衡策略"><a href="#负载均衡策略" class="headerlink" title="负载均衡策略"></a>负载均衡策略</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Random LoadBalance</td>
+<td>Stable</td>
+<td>随机，按权重设置随机概率（推荐使用）</td>
+<td>在一个截面上碰撞的概率高，重试时，可能出现瞬间压力不均</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>RoundRobin LoadBalance</td>
+<td>Stable</td>
+<td>轮询，按公约后的权重设置轮询比率</td>
+<td>存在慢的机器累积请求问题，极端情况可能产生雪崩</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+<tr>
+<td>LeastActive LoadBalance</td>
+<td>Stable</td>
+<td>最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差，使慢的机器收到更少请求</td>
+<td>不支持权重，在容量规划时，不能通过权重把压力导向一台机器压测容量</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+<tr>
+<td>ConsistentHash LoadBalance</td>
+<td>Stable</td>
+<td>一致性Hash，相同参数的请求总是发到同一提供者，当某一台提供者挂时，原本发往该提供者的请求，基于虚拟节点，平摊到其它提供者，不会引起剧烈变动</td>
+<td>压力分摊不均</td>
+<td>可用于生产环境</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="路由规则"><a href="#路由规则" class="headerlink" title="路由规则"></a>路由规则</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>条件路由规则</td>
+<td>Stable</td>
+<td>基于条件表达式的路由规则，功能简单易用</td>
+<td>有些复杂多分支条件情况，规则很难描述</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>脚本路由规则</td>
+<td>Tested</td>
+<td>基于脚本引擎的路由规则，功能强大</td>
+<td>没有运行沙箱，脚本能力过于强大，可能成为后门</td>
+<td>试用</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h2><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Maturity</th>
+<th>Strength</th>
+<th>Problem</th>
+<th>Advise</th>
+<th>User</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Spring Container</td>
+<td>Stable</td>
+<td>自动加载META-INF/spring目录下的所有Spring配置</td>
+<td></td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Jetty Container</td>
+<td>Stable</td>
+<td>启动一个内嵌Jetty，用于汇报状态</td>
+<td>大量访问页面时，会影响服务器的线程和内存</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+<tr>
+<td>Log4j Container</td>
+<td>Stable</td>
+<td>自动配置log4j的配置，在多进程启动时，自动给日志文件按进程分目录</td>
+<td>用户不能控制log4j的配置，不灵活</td>
+<td>可用于生产环境</td>
+<td>Alibaba</td>
+</tr>
+</tbody></table>
+<h2 id="Dubbo角色"><a href="#Dubbo角色" class="headerlink" title="Dubbo角色"></a>Dubbo角色</h2><p>Provide 服务提供方<br>Consumer 服务消费方<br>Registry 服务与注册中心</p>
+<ul>
+<li>TODO<br>Monitor 监控中心<br>Container 服务运行容器<br><a target="_blank" rel="noopener" href="https://img-blog.csdn.net/20181002113850939?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21vYWt1bg==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70">!Dubbo</a></li>
+</ul>
+<h2 id="Dubbo-暴露服务"><a href="#Dubbo-暴露服务" class="headerlink" title="Dubbo 暴露服务"></a>Dubbo 暴露服务</h2><p>Dubbo暴露服务分为延迟暴露和非延迟暴露两种：</p>
+<ul>
+<li>延迟暴露：在初始化Spring中服务提供类Bean时，会对实现了InitializingBean的类回调其中的afterPropertySet()方法，设置延迟后服务发布就是在该方法中进行。</li>
+<li>非延迟暴露：dubbo在Spring实例化完bean之后，在最后一步发布ContextRefreshEvent事件时，通知会对实现ApplicationListner的类进行回调onApplicationEvent方法，dubbo会在这个方法中进行发布服务。</li>
+</ul>
+<p>在服务发布暴露的过程中，都是使用SpringConfig的export()方法进行服务的暴露，export()会将Bean对象转换为URL格式，其中Bean的属性转换为URL的参数，发布到Dubbo的注册中心中，消费者获取可提供服务列表中获取均是该类型参数可直接进行调用。</p>
+<h3 id="暴露过程"><a href="#暴露过程" class="headerlink" title="暴露过程"></a>暴露过程</h3><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dcfe426e9cd7">dubbo暴露服务</a></p>
+<ul>
+<li><p>Spring 容器初始化调用<br>当Spring容器完成实例化Bean后，在最后一步发布ContextRefreshEvent事件时，Dubbo通过ServiceBean来监听RefreshEvent事件。通过监听事件来触发Dubbo的暴露过程export()。</p>
+</li>
+<li><p>SpringConfig的export()</p>
+<ul>
+<li>服务提供者Bean中在初始化时@Service注解中各种变量都不会序列化所以可以直接使用；</li>
+<li>检查是否延迟，如果是延迟发布则在该Bean中启动一个延迟线程池，延迟执行export()；<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">export</span><span class="params">()</span> &#123;</span><br><span class="line">    checkAndUpdateSubConfigs();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!shouldExport()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (shouldDelay()) &#123;</span><br><span class="line">        delayExportExecutor.schedule(<span class="built_in">this</span>::doExport, delay, TimeUnit.MILLISECONDS);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        doExport();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>检查和设置注册和生成URL所需参数<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">checkAndUpdateSubConfigs</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 在痊愈配置中使用默认配置进行定义</span></span><br><span class="line">    <span class="comment">// 其中包括生产者所有配置，监听器，协议，等等</span></span><br><span class="line">    completeCompoundConfigs();</span><br><span class="line">    <span class="comment">// 首先启动Dubbo三大中心（注册中心，元数据中心、配置中心）之一的配置中心</span></span><br><span class="line">    <span class="comment">// 配置中心详解  https://blog.csdn.net/u012881904/article/details/95891448</span></span><br><span class="line">    <span class="comment">// 【配置中心主要负责 外部化配置(可以理解为dubbo.properties外部化存储)、服务治理(服务治理规则的存储于通知) ConfigManager.getInstance()</span></span><br><span class="line">    startConfigCenter();</span><br><span class="line">    <span class="comment">// 检查服务生产者是否存在，不过该类基本没啥用，ProvideConfig基本被废弃</span></span><br><span class="line">    checkDefault();</span><br><span class="line">    <span class="comment">// 检查当前运行容器信息,如果不存在则设置当前Bean的application信息</span></span><br><span class="line">    checkApplication();</span><br><span class="line">    <span class="comment">// 检测注册中心，将配置文件中dubbo.registry.address 的属性值，如果是多注册中心会将注册中心都分隔开用RegistryConfig保存在（protected List&lt;RegistryConfig&gt; registries;）中，所以dubbo是支持多注册中心。</span></span><br><span class="line">    checkRegistry();</span><br><span class="line">    <span class="comment">// 检查所配置协议，并把协议的相关配置转换为Protocols，方便后续在export时生成映射关系直接进行使用，Dubbo也支持多协议</span></span><br><span class="line">    checkProtocol();</span><br><span class="line">    <span class="built_in">this</span>.refresh();</span><br><span class="line">    <span class="comment">// 检查元数据中心</span></span><br><span class="line">    checkMetadataReport();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 八寸该Provider的代理类以及实际执行类在后面暴露注册服务生成URL以及Key-Value关系时会用到</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isEmpty(interfaceName)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;&lt;dubbo:service interface=\&quot;\&quot; /&gt; interface not allow null!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ref <span class="keyword">instanceof</span> GenericService) &#123;</span><br><span class="line">        interfaceClass = GenericService.class;</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isEmpty(generic)) &#123;</span><br><span class="line">            generic = Boolean.TRUE.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            interfaceClass = Class.forName(interfaceName, <span class="literal">true</span>, Thread.currentThread()</span><br><span class="line">                    .getContextClassLoader());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(e.getMessage(), e);</span><br><span class="line">        &#125;</span><br><span class="line">        checkInterfaceAndMethods(interfaceClass, methods);</span><br><span class="line">        checkRef();</span><br><span class="line">        generic = Boolean.FALSE.toString();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (local != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;true&quot;</span>.equals(local)) &#123;</span><br><span class="line">            local = interfaceName + <span class="string">&quot;Local&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Class&lt;?&gt; localClass;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            localClass = ClassHelper.forNameWithThreadContextClassLoader(local);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(e.getMessage(), e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!interfaceClass.isAssignableFrom(localClass)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;The local implementation class &quot;</span> + localClass.getName() + <span class="string">&quot; not implement interface &quot;</span> + interfaceName);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (stub != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;true&quot;</span>.equals(stub)) &#123;</span><br><span class="line">            stub = interfaceName + <span class="string">&quot;Stub&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Class&lt;?&gt; stubClass;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            stubClass = ClassHelper.forNameWithThreadContextClassLoader(stub);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(e.getMessage(), e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!interfaceClass.isAssignableFrom(stubClass)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;The stub implementation class &quot;</span> + stubClass.getName() + <span class="string">&quot; not implement interface &quot;</span> + interfaceName);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    checkStubAndLocal(interfaceClass);</span><br><span class="line">    checkMock(interfaceClass);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>doExport() 进行注册以及暴露服务</li>
+</ul>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 线程安全的方式进行服务暴露，确保不会重复缓存</span></span><br><span class="line"> <span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">doExport</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (unexported) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;The service &quot;</span> + interfaceClass.getName() + <span class="string">&quot; has already unexported!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (exported) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    exported = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isEmpty(path)) &#123;</span><br><span class="line">        path = interfaceName;</span><br><span class="line">    &#125;</span><br><span class="line">    doExportUrls();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这是个测试，git化</p>
+<ul>
+<li><p>根据所配置协议，逐个向每个注册中心中进行暴露服务</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">doExportUrls</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 加载配置的所有注册中心</span></span><br><span class="line">    <span class="comment">// 检查注册中心配置是否合法，如果合法根据registres中所配置的注册中心信息来进行对应注册中心URL的生成，方便在下面注册到远程时使用</span></span><br><span class="line">    <span class="comment">// RUL 格式（registry://IP:PORT/org.apache.dubbo.registry.RegistryService?application=DemoProvider&amp;dubbo=2.0.2&amp;pid=2944&amp;qos.enable=false&amp;registry=zookeeper&amp;release=2.7.1&amp;timestamp=1608811153169）</span></span><br><span class="line">    List&lt;URL&gt; registryURLs = loadRegistries(<span class="literal">true</span>);</span><br><span class="line">    <span class="comment">// 根据配置协议进行逐个注册，实际上registres 和protocols做笛卡尔积</span></span><br><span class="line">    <span class="keyword">for</span> (ProtocolConfig protocolConfig : protocols) &#123;</span><br><span class="line">       <span class="comment">// 先拼接元数据，此时格式（test/com.dubbo.provide.service.ProvideService:1.0.0）</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">pathKey</span> <span class="operator">=</span> URL.buildKey(getContextPath(protocolConfig).map(p -&gt; p + <span class="string">&quot;/&quot;</span> + path).orElse(path), group, version);</span><br><span class="line">        <span class="comment">// 将代理类和Key保存在缓存中 providedServices，当做该类已经注册</span></span><br><span class="line">        <span class="type">ProviderModel</span> <span class="variable">providerModel</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ProviderModel</span>(pathKey, ref, interfaceClass);</span><br><span class="line">        ApplicationModel.initProviderModel(pathKey, providerModel);</span><br><span class="line">        <span class="comment">// 实际暴露</span></span><br><span class="line">        doExportUrlsFor1Protocol(protocolConfig, registryURLs);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>暴露服务</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 本地暴露服务</span></span><br><span class="line"><span class="keyword">if</span> (!Constants.SCOPE_REMOTE.equalsIgnoreCase(scope)) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!Constants.LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) &#123;</span><br><span class="line">        <span class="comment">//这时候转成本地暴露的url：injvm://127.0.0.1/dubbo.common.hello.service.HelloService?anyhost=true&amp;</span></span><br><span class="line">        <span class="comment">//application=dubbo-provider&amp;application.version=1.0&amp;dubbo=2.5.3&amp;environment=product&amp;</span></span><br><span class="line">        <span class="comment">//interface=dubbo.common.hello.service.HelloService&amp;methods=sayHello&amp;</span></span><br><span class="line">        <span class="comment">//organization=china&amp;owner=cheng.xi&amp;pid=720&amp;side=provider&amp;timestamp=1489716708276</span></span><br><span class="line">        <span class="type">URL</span> <span class="variable">local</span> <span class="operator">=</span> URL.valueOf(url.toFullString())</span><br><span class="line">                .setProtocol(Constants.LOCAL_PROTOCOL)</span><br><span class="line">                .setHost(NetUtils.LOCALHOST)</span><br><span class="line">                .setPort(<span class="number">0</span>);</span><br><span class="line">        <span class="comment">//首先还是先获得Invoker</span></span><br><span class="line">        <span class="comment">//然后导出成Exporter，并缓存</span></span><br><span class="line">        <span class="comment">//这里的proxyFactory实际是JavassistProxyFactory</span></span><br><span class="line">        <span class="comment">//有关详细的获得Invoke以及exporter会在下面的流程解析，在本地暴露这个流程就不再说明。</span></span><br><span class="line">        Exporter&lt;?&gt; exporter = protocol.export(</span><br><span class="line">                proxyFactory.getInvoker(ref, (Class) interfaceClass, local));</span><br><span class="line">        exporters.add(exporter);</span><br><span class="line">        logger.info(<span class="string">&quot;Export dubbo service &quot;</span> + interfaceClass.getName() +<span class="string">&quot; to local registry&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 远程暴露服务</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!Constants.SCOPE_LOCAL.equalsIgnoreCase(scope)) &#123;</span><br><span class="line">    <span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">        logger.info(<span class="string">&quot;Export dubbo service &quot;</span> + interfaceClass.getName() + <span class="string">&quot; to url &quot;</span> + url);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (CollectionUtils.isNotEmpty(registryURLs)) &#123;</span><br><span class="line">        <span class="keyword">for</span> (URL registryURL : registryURLs) &#123;</span><br><span class="line">            url = url.addParameterIfAbsent(Constants.DYNAMIC_KEY, registryURL.getParameter(Constants.DYNAMIC_KEY));</span><br><span class="line">            <span class="type">URL</span> <span class="variable">monitorUrl</span> <span class="operator">=</span> loadMonitor(registryURL);</span><br><span class="line">            <span class="keyword">if</span> (monitorUrl != <span class="literal">null</span>) &#123;</span><br><span class="line">                url = url.addParameterAndEncoded(Constants.MONITOR_KEY, monitorUrl.toFullString());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">                logger.info(<span class="string">&quot;Register dubbo service &quot;</span> + interfaceClass.getName() + <span class="string">&quot; url &quot;</span> + url + <span class="string">&quot; to registry &quot;</span> + registryURL);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// For providers, this is used to enable custom proxy to generate invoker</span></span><br><span class="line">            <span class="type">String</span> <span class="variable">proxy</span> <span class="operator">=</span> url.getParameter(Constants.PROXY_KEY);</span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isNotEmpty(proxy)) &#123;</span><br><span class="line">                registryURL = registryURL.addParameter(Constants.PROXY_KEY, proxy);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 根据选择的代理工厂来将代理类和相关信息封装成Invoker类，Dubbo默认使用Javassist代理</span></span><br><span class="line">            Invoker&lt;?&gt; invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));</span><br><span class="line">            <span class="type">DelegateProviderMetaDataInvoker</span> <span class="variable">wrapperInvoker</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DelegateProviderMetaDataInvoker</span>(invoker, <span class="built_in">this</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 根据选择不同的协议封装成不同的Exporter,选择的dubbo协议不同则封装内容和逻辑会有差异，默认dubbo协议</span></span><br><span class="line">            Exporter&lt;?&gt; exporter = protocol.export(wrapperInvoker);</span><br><span class="line">            exporters.add(exporter);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Invoker&lt;?&gt; invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);</span><br><span class="line">        <span class="type">DelegateProviderMetaDataInvoker</span> <span class="variable">wrapperInvoker</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DelegateProviderMetaDataInvoker</span>(invoker, <span class="built_in">this</span>);</span><br><span class="line"></span><br><span class="line">        Exporter&lt;?&gt; exporter = protocol.export(wrapperInvoker);</span><br><span class="line">        exporters.add(exporter);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@since</span> 2.7.0</span></span><br><span class="line"><span class="comment">     * ServiceData Store</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">MetadataReportService</span> <span class="variable">metadataReportService</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> ((metadataReportService = getMetadataReportService()) != <span class="literal">null</span>) &#123;</span><br><span class="line">        metadataReportService.publishProvider(url);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>封装Invoker</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;T&gt; Invoker&lt;T&gt; <span class="title function_">getInvoker</span><span class="params">(T proxy, Class&lt;T&gt; type, URL url)</span> &#123;</span><br><span class="line">    <span class="comment">// 根据proxy代理类生成Invoker的包装类Wrapper,如果$开口则使用接口类型来生成Wrapper</span></span><br><span class="line">   <span class="comment">// 被final修饰后，只有在所有引用都失效后才会被GC</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">Wrapper</span> <span class="variable">wrapper</span> <span class="operator">=</span> Wrapper.getWrapper(proxy.getClass().getName().indexOf(<span class="string">&#x27;$&#x27;</span>) &lt; <span class="number">0</span> ? proxy.getClass() : type);</span><br><span class="line">    <span class="comment">// 直接返回初始化好的Invoker对象，并重写执行指定方法的Invoker方法，使用包装类wrapper来进行方法的调用，所以只有该Invoker被回收后，他的包装类才会被回收</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">AbstractProxyInvoker</span>&lt;T&gt;(proxy, type, url) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> Object <span class="title function_">doInvoke</span><span class="params">(T proxy, String methodName,</span></span><br><span class="line"><span class="params">                                  Class&lt;?&gt;[] parameterTypes,</span></span><br><span class="line"><span class="params">                                  Object[] arguments)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">            <span class="keyword">return</span> wrapper.invokeMethod(proxy, methodName, parameterTypes, arguments);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>导出Invoker</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">public</span> &lt;T&gt; Exporter&lt;T&gt; <span class="title function_">export</span><span class="params">(Invoker&lt;T&gt; invoker)</span> <span class="keyword">throws</span> RpcException &#123;</span><br><span class="line"> <span class="comment">//registry类型的Invoker，不需要做处理</span></span><br><span class="line"> <span class="keyword">if</span> (Constants.REGISTRY_PROTOCOL.equals(invoker.getUrl().getProtocol())) &#123;</span><br><span class="line">     <span class="keyword">return</span> protocol.export(invoker);</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="comment">//非Registry类型的Invoker，需要被监听器包装</span></span><br><span class="line"> <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ListenerExporterWrapper</span>&lt;T&gt;(protocol.export(invoker), </span><br><span class="line">         Collections.unmodifiableList(ExtensionLoader.getExtensionLoader(ExporterListener.class)</span><br><span class="line">                 .getActivateExtension(invoker.getUrl(), Constants.EXPORTER_LISTENER_KEY)));</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> &lt;T&gt; Exporter&lt;T&gt; <span class="title function_">export</span><span class="params">(<span class="keyword">final</span> Invoker&lt;T&gt; originInvoker)</span> <span class="keyword">throws</span> RpcException &#123;</span><br><span class="line"> <span class="comment">//export invoker</span></span><br><span class="line"> <span class="comment">//这里就交给了具体的协议去暴露服务（先不解析，留在后面，可以先去后面看下导出过程）</span></span><br><span class="line"> <span class="keyword">final</span> ExporterChangeableWrapper&lt;T&gt; exporter = doLocalExport(originInvoker);</span><br><span class="line"> <span class="comment">//registry provider</span></span><br><span class="line"> <span class="comment">//根据invoker中的url获取Registry实例</span></span><br><span class="line"> <span class="comment">//并且连接到注册中心</span></span><br><span class="line"> <span class="comment">//此时提供者作为消费者引用注册中心核心服务RegistryService</span></span><br><span class="line"> <span class="keyword">final</span> <span class="type">Registry</span> <span class="variable">registry</span> <span class="operator">=</span> getRegistry(originInvoker);</span><br><span class="line"> <span class="comment">//注册到注册中心的URL</span></span><br><span class="line"> <span class="keyword">final</span> <span class="type">URL</span> <span class="variable">registedProviderUrl</span> <span class="operator">=</span> getRegistedProviderUrl(originInvoker);</span><br><span class="line"> <span class="comment">//调用远端注册中心的register方法进行服务注册</span></span><br><span class="line"> <span class="comment">//若有消费者订阅此服务，则推送消息让消费者引用此服务。</span></span><br><span class="line"> <span class="comment">//注册中心缓存了所有提供者注册的服务以供消费者发现。</span></span><br><span class="line"> registry.register(registedProviderUrl);</span><br><span class="line"> <span class="comment">// 订阅override数据</span></span><br><span class="line"> <span class="comment">// FIXME 提供者订阅时，会影响同一JVM即暴露服务，又引用同一服务的的场景，因为subscribed以服务名为缓存的key，导致订阅信息覆盖。</span></span><br><span class="line"> <span class="keyword">final</span> <span class="type">URL</span> <span class="variable">overrideSubscribeUrl</span> <span class="operator">=</span> getSubscribedOverrideUrl(registedProviderUrl);</span><br><span class="line"> <span class="keyword">final</span> <span class="type">OverrideListener</span> <span class="variable">overrideSubscribeListener</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">OverrideListener</span>(overrideSubscribeUrl);</span><br><span class="line"> overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);</span><br><span class="line"> <span class="comment">//提供者向注册中心订阅所有注册服务的覆盖配置</span></span><br><span class="line"> <span class="comment">//当注册中心有此服务的覆盖配置注册进来时，推送消息给提供者，重新暴露服务，这由管理页面完成。</span></span><br><span class="line"> <span class="comment">// 根据调用策略来决定订阅逻辑</span></span><br><span class="line"> registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);</span><br><span class="line"> <span class="comment">//保证每次export都返回一个新的exporter实例</span></span><br><span class="line"> <span class="comment">//返回暴露后的Exporter给上层ServiceConfig进行缓存，便于后期撤销暴露。</span></span><br><span class="line"> <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Exporter</span>&lt;T&gt;() &#123;&#125;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> <span class="comment">//根据invoker的地址获取registry实例</span></span><br><span class="line"> <span class="keyword">private</span> Registry <span class="title function_">getRegistry</span><span class="params">(<span class="keyword">final</span> Invoker&lt;?&gt; originInvoker)</span>&#123;</span><br><span class="line">     <span class="comment">//获取invoker中的registryUrl</span></span><br><span class="line">     <span class="type">URL</span> <span class="variable">registryUrl</span> <span class="operator">=</span> originInvoker.getUrl();</span><br><span class="line">     <span class="keyword">if</span> (Constants.REGISTRY_PROTOCOL.equals(registryUrl.getProtocol())) &#123;</span><br><span class="line">         <span class="comment">//获取registry的值，这里获得是zookeeper，默认值是dubbo</span></span><br><span class="line">         <span class="type">String</span> <span class="variable">protocol</span> <span class="operator">=</span> registryUrl.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_DIRECTORY);</span><br><span class="line">         <span class="comment">//这里获取到的url为：</span></span><br><span class="line">         <span class="comment">//zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?</span></span><br><span class="line">         <span class="comment">//application=dubbo-provider&amp;application.version=1.0&amp;dubbo=2.5.3&amp;</span></span><br><span class="line">         <span class="comment">//environment=product&amp;export=dubbo%3A%2F%2F192.168.1.100%3A20880%2F</span></span><br><span class="line">         <span class="comment">//dubbo.common.hello.service.HelloService%3Fanyhost%3Dtrue%26application%3Ddubbo-provider%26</span></span><br><span class="line">         <span class="comment">//application.version%3D1.0%26dubbo%3D2.5.3%26environment%3Dproduct%26</span></span><br><span class="line">         <span class="comment">//interface%3Ddubbo.common.hello.service.HelloService%26methods%3DsayHello%26</span></span><br><span class="line">         <span class="comment">//organization%3Dchina%26owner%3Dcheng.xi%26pid%3D9457%26side%3Dprovider%26timestamp%3D1489807681627&amp;organization=china&amp;owner=cheng.xi&amp;</span></span><br><span class="line">         <span class="comment">//pid=9457&amp;timestamp=1489807680193</span></span><br><span class="line">         registryUrl = registryUrl.setProtocol(protocol).removeParameter(Constants.REGISTRY_KEY);</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="comment">//根据SPI机制获取具体的Registry实例，这里获取到的是ZookeeperRegistry</span></span><br><span class="line">     <span class="keyword">return</span> registryFactory.getRegistry(registryUrl);</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>Dubbo 会在 Spring 实例化完 bean 之后，在刷新容器最后一步发布 ContextRefreshEvent 事件的时候，通知实现了 ApplicationListener 的 ServiceBean 类进行回调 onApplicationEvent 事件方法，Dubbo 会在这个方法中调用 ServiceBean 父类 ServiceConfig 的 export 方法，而该方法真正实现了服务的（异步或者非异步）发布。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h1><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Java-JJ/p/12692454.html">Netty</a><br><a target="_blank" rel="noopener" href="https://www.16175.com/13353.html">Netty</a></p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Netty是一款基于NIO非阻塞IO模型开发的网络通信框架，相比于BIO，Netty在性能以及内存损耗方面有很大的提升。</p>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><h4 id="1-IO模型"><a href="#1-IO模型" class="headerlink" title="1.IO模型"></a>1.IO模型</h4><p>在Netty中，IO操作主要分为两个部分：Acceptor(建立连接)，write/read(IO读写操作)。而Netty可以通过选择不同的Reactor线程模型来选择提高IO效率：</p>
+<ul>
+<li><p>单Reactor单线程模式<br>由于Reactor模式使用是异步非阻塞IO，所以一个线程可以独立处理所有的IO相关操作。单个线程通过Acceptor接受客户端的TCP连接请求，链路建立成功后Reactor通过Dispatch将对应ByteBuffer派发到指定的Handler上进行消息消息编解码。在模式下只有单一线程进行IO处理。</p>
+</li>
+<li><p>单Reactor多线程模式<br>该模式下Acceptor和write/read两种操作会由不同的线程进行担任，会有一个专门NIO线程-Acceptor线程用于监听服务端，接受客户端TCP连接消息。网络IO操作（读写操作）都会由一个NIO线程池负责，线程池使用JDK线程池实现，其中还包含一个任务队列和可用线程计数器。</p>
+</li>
+<li><p>多Reactor多线程模式<br>该模式下用于接受客户端创建链路连接线程不再由单一线程进行担任，而是由一个独立的NIO线程池进行处理。Acceptor线程池接收到客户端TCP连接请求后，将新创建的SocketChannel注册到IO线程池中的某个IO线程上，由他进行数据的写入，编码，解码，读出工作。</p>
+</li>
+</ul>
+<h5 id="NIO组成"><a href="#NIO组成" class="headerlink" title="NIO组成"></a>NIO组成</h5><ul>
+<li><p>Buffer:与Channel进行交互，NIO面向的缓冲区。当NIO存在有效连接并进行性数据写入写出时都会与该Buffer进行交互。所以数据都是从Channel读入缓冲区，从缓冲区写入Channel中。</p>
+</li>
+<li><p>Channel：信道，缓冲区和IO源的连接，不同于Stream的单向传输，Channel是可以进行双向传输的。在Channel进行数据移动的时候会调用native方法，将按照数据块为单位写入/写出。相比于Stream的IO操作，Channel在效率方面会高出三分之一左右（原因还未知，但主要两方面，传输方式零拷贝，传输数据单位）。<a target="_blank" rel="noopener" href="https://my.oschina.net/u/4303561/blog/3828050">Channel VS Stream</a></p>
+</li>
+<li><p>Selector：多路复用器。可使用一个单独的线程管理多个Channel,串行遍历进行IO操作。其中open方用户创建Selector,register用于向Selector注册Channel。Java中的Selector默认使用Epoll但是可以通过参数来指定其他的多路复用器。</p>
+</li>
+<li><p>NIOEventLoopGroup：时间循环处理类，内部维护一个由EventExector children []默认大小是处理器核数*2构成的线程池。</p>
+<h4 id="2-内存零拷贝"><a href="#2-内存零拷贝" class="headerlink" title="2.内存零拷贝"></a>2.内存零拷贝</h4><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xys1228/p/6088805.html#_caption_2">零拷贝实现</a></p>
+</li>
+</ul>
+<p>1.相比于BIO面向流开发，Netty使用NIO模型面向（堆外内存）缓冲区进行开发。Netty接收和发送ByteBuffer采用DIRECT BUFFERS(堆外缓存）,使用堆外内存进行Socket读取不用进行字节缓冲区的二次拷贝。传统堆内存进行Socket读写，JVM会将堆内存Buffer拷贝一份到直接内存中再写入Socket中，相比堆外内存，传统堆内存会多一次缓冲区内存拷贝。<br>2.Netty提供组合Buffer对象，例如CompositeByteBuf可以将报文进行粘包/切包不再像传统内存拷贝方式将几个小的Buffer合并成一个Buffer进行处理。<br>3.Netty文件传输采用transferTo方法，它可以直接将文件缓冲区的数据发送到目标Channel，避免了传统通过循环write方式导致的内存拷贝问题。</p>
+<h4 id="3-串形化读写处理"><a href="#3-串形化读写处理" class="headerlink" title="3.串形化读写处理"></a>3.串形化读写处理</h4><p>Netty在IO线程内部进行串行化操作，避免了多线程竞争导致性能下降。在IO线程内部通会通过线程池启动多个串行化线程并行运行，每个线程通过串行方式遍历所有与该线程绑定的Channel,在NioEventLoop(IO线程池)读到消息后会调用ChannelPipeline的fireChannelRead进行数据的读或者写，只要线程池不主动切换线程会由NioEventLoop调用用户的Handler进行操作，期间不进行线程切换所以不会导致资源的竞争避免锁操作。</p>
+<h4 id="4-高性能序列化协议"><a href="#4-高性能序列化协议" class="headerlink" title="4.高性能序列化协议"></a>4.高性能序列化协议</h4><p>Netty默认提供对Google Protobuf 的支持，可以通过扩展Netty的编解码接口，可以让用户实现其他高性能序列化框架，例如Thrift的压缩二进制编解码框架。</p>
+<h4 id="5-内存池设计"><a href="#5-内存池设计" class="headerlink" title="5.内存池设计"></a>5.内存池设计</h4><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/pentiumchen/article/details/45372625">内存池原理</a><br>为了避免频繁的内存分配给系统带来负担以及GC对系统性能带来的波动，Netty使全新的内存池来管理内存的分配和回收，内存池的设计主要参考Slab(Memcached的内存池)，Buddy分配两种思路来进行内存管理。<br>Slab分配：主要思路是将内存分割成大小不等的内存块，用户线程请求内存时根据请求的内存代销分配最贴近的Size的内存块。在减少碎片的同时又能很好的避免内存浪费。<br>Buddy：在分配内存的过程中把一些内存块灯亮分割，回收时合并，尽可能保证系统中有较大的连续可分配内存。</p>
 
       
 
@@ -204,17 +708,6 @@
     <div class="article-info article-info-index">
       
       
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">测试</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
       
 
       
@@ -265,7 +758,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/05/22/Test/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/05/24/Dubbo%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -279,15 +772,11 @@
   
 <nav id="article-nav">
   
-    <a href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%89)Spring%E6%95%B4%E5%90%88/" id="article-nav-newer" class="article-nav-link-wrap">
-      <i class="icon-circle-left"></i>
-      <div class="article-nav-title">
-        
-          Mybatis源码阅读(三)Spring整合
-        
-      </div>
-    </a>
   
+    <a href="/2023/05/24/Redis%E5%AD%A6%E4%B9%A0(%E4%B8%80)%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Redis学习(一)基础结构</div>
+      <i class="icon-circle-right"></i>
+    </a>
   
 </nav>
 
@@ -312,7 +801,7 @@
                 </span>
                 <span class="tooltip-content">
                     <div class="toc-article">
-                    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA%E6%B5%8B%E8%AF%95%EF%BC%8C%E5%85%84dei"><span class="toc-number">1.</span> <span class="toc-text">这是一个测试，兄dei</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%91%BD%E4%BB%A4"><span class="toc-number">1.1.</span> <span class="toc-text">编译命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">搭建教程</span></a></li></ol></li></ol>
+                    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Dubbo"><span class="toc-number">1.</span> <span class="toc-text">Dubbo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">结构介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E5%88%9B%E5%BB%BA%E6%B3%A8%E5%86%8C%E5%8F%91%E7%8E%B0%E4%B8%AD%E5%BF%83Zookeeper"><span class="toc-number">1.2.0.0.1.</span> <span class="toc-text">1.创建注册发现中心Zookeeper</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E7%94%9F%E4%BA%A7%E8%80%85"><span class="toc-number">1.2.0.0.2.</span> <span class="toc-text">2.生产者</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E6%B6%88%E8%B4%B9%E8%80%85"><span class="toc-number">1.2.0.0.3.</span> <span class="toc-text">3.消费者</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94SpringCloud%E4%BD%93%E7%B3%BB"><span class="toc-number">1.3.</span> <span class="toc-text">对比SpringCloud体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83"><span class="toc-number">1.4.</span> <span class="toc-text">注册中心</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.5.</span> <span class="toc-text">支持的协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6"><span class="toc-number">1.6.</span> <span class="toc-text">通信框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B9%E5%BC%8F"><span class="toc-number">1.7.</span> <span class="toc-text">序列化与反序列化方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.8.</span> <span class="toc-text">代理对象实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6"><span class="toc-number">1.9.</span> <span class="toc-text">容错机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5"><span class="toc-number">1.10.</span> <span class="toc-text">负载均衡策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99"><span class="toc-number">1.11.</span> <span class="toc-text">路由规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E5%AE%B9%E5%99%A8"><span class="toc-number">1.12.</span> <span class="toc-text">运行容器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dubbo%E8%A7%92%E8%89%B2"><span class="toc-number">1.13.</span> <span class="toc-text">Dubbo角色</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dubbo-%E6%9A%B4%E9%9C%B2%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.14.</span> <span class="toc-text">Dubbo 暴露服务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9A%B4%E9%9C%B2%E8%BF%87%E7%A8%8B"><span class="toc-number">1.14.1.</span> <span class="toc-text">暴露过程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Netty"><span class="toc-number">2.</span> <span class="toc-text">Netty</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-number">2.1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%B9%E7%82%B9"><span class="toc-number">2.2.</span> <span class="toc-text">特点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-IO%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.2.0.1.</span> <span class="toc-text">1.IO模型</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#NIO%E7%BB%84%E6%88%90"><span class="toc-number">2.2.0.1.1.</span> <span class="toc-text">NIO组成</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%86%85%E5%AD%98%E9%9B%B6%E6%8B%B7%E8%B4%9D"><span class="toc-number">2.2.0.2.</span> <span class="toc-text">2.内存零拷贝</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E4%B8%B2%E5%BD%A2%E5%8C%96%E8%AF%BB%E5%86%99%E5%A4%84%E7%90%86"><span class="toc-number">2.2.0.3.</span> <span class="toc-text">3.串形化读写处理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E9%AB%98%E6%80%A7%E8%83%BD%E5%BA%8F%E5%88%97%E5%8C%96%E5%8D%8F%E8%AE%AE"><span class="toc-number">2.2.0.4.</span> <span class="toc-text">4.高性能序列化协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E5%86%85%E5%AD%98%E6%B1%A0%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.2.0.5.</span> <span class="toc-text">5.内存池设计</span></a></li></ol></li></ol></li></ol></li></ol>
                     </div>
                 </span>
             </div>
@@ -329,8 +818,8 @@
   <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
 <script>
   var cloudTieConfig = {
-    url: "http://example.com/2023/05/22/Test/", 
-    sourceId: "Test",
+    url: "http://example.com/2023/05/24/Dubbo%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/", 
+    sourceId: "Dubbo源码阅读",
     productKey: "true",
     target: "cloud-tie-wrapper"
   };
