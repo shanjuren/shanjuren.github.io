@@ -6,15 +6,25 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>Tag: MySQL | 开图的山巨人の领地</title>
+  <title>RocketMQ | 开图的山巨人の领地</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="开图的山巨人の领地">
-<meta property="og:url" content="http://example.com/tags/MySQL/index.html">
+  <meta name="description" content="RocketMQ RocketMQ结构组成RockMQ由四个部分构成： NamerServer无状态节点，可集群部署，但是节点之间无通信。该节点主要存储Producer和Customer的配置信息和状态信息、Broker集群配置信息和元信息。相比于Zookeeper的分布式协调，NameServer更加轻量级不会存在自动选举能力，因为MasterBroker中不会保存所有的Topic所以集群式的N">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ">
+<meta property="og:url" content="http://example.com/2023/05/24/RocketMQ/index.html">
 <meta property="og:site_name" content="开图的山巨人の领地">
+<meta property="og:description" content="RocketMQ RocketMQ结构组成RockMQ由四个部分构成： NamerServer无状态节点，可集群部署，但是节点之间无通信。该节点主要存储Producer和Customer的配置信息和状态信息、Broker集群配置信息和元信息。相比于Zookeeper的分布式协调，NameServer更加轻量级不会存在自动选举能力，因为MasterBroker中不会保存所有的Topic所以集群式的N">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/assets/doc-images/rocket_mq_structs.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/rocket_mq_topic.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/rocket_mq_index.png">
+<meta property="og:image" content="http://example.com/assets/doc-images/rocket_mq_broker.png">
+<meta property="article:published_time" content="2023-05-24T09:22:10.014Z">
+<meta property="article:modified_time" content="2023-05-24T09:57:52.420Z">
 <meta property="article:author" content="ght">
+<meta property="article:tag" content="MQ">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/assets/doc-images/rocket_mq_structs.png">
   
     <link rel="alternative" href="/atom.xml" title="开图的山巨人の领地" type="application/atom+xml">
   
@@ -142,60 +152,285 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-RocketMQ" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2023" class="archive-year">2023</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2023/05/24/MySQL%E5%9F%BA%E7%A1%80/" class="archive-article-date">
-  	<time datetime="2023-05-24T08:46:25.927Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2023/05/24/MySQL%E5%9F%BA%E7%A1%80/">MySQL学习(一)基础结构</a>
+    <h1 class="article-title" itemprop="name">
+      RocketMQ
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/2023/05/24/RocketMQ/" class="archive-article-date">
+  	<time datetime="2023-05-24T09:22:10.014Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h2><p><img src="/assets/doc-images/rocket_mq_structs.png" alt="RocketMQ部署图"></p>
+<h3 id="RocketMQ结构组成"><a href="#RocketMQ结构组成" class="headerlink" title="RocketMQ结构组成"></a>RocketMQ结构组成</h3><p>RockMQ由四个部分构成：</p>
+<h4 id="NamerServer"><a href="#NamerServer" class="headerlink" title="NamerServer"></a>NamerServer</h4><p>无状态节点，可集群部署，但是节点之间无通信。该节点主要存储Producer和Customer的配置信息和状态信息、Broker集群配置信息和元信息。相比于Zookeeper的分布式协调，NameServer更加轻量级不会存在自动选举能力，因为MasterBroker中不会保存所有的Topic所以集群式的NameServer失去选举机制的意义而且又是跟轻量级的任务协调框架。</p>
+<h4 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h4><p>消息存储者和转发者，Broker主要提供服务的部分。单个Broker会对所有NameServer节点保持长连接心跳，并且会定时将Topic信息注册到NameServer中。Broker同样还负责存储消息，以Topic为维度支持轻量级队列，支持消息推拉模型。(Broker实际上可以支持几十万队列消息存储，并可以保证严格顺序。</p>
+<h5 id="部署模式"><a href="#部署模式" class="headerlink" title="部署模式"></a>部署模式</h5><ul>
+<li>单Master模式，只有单个节点，很脆弱。存在单点故障。</li>
+<li>单Master多Slave模式，该模式相比于单Master模式增加读的性能，但是依然存在单点故障。</li>
+<li>多Master模式，多个Master节点组成的集群，单个Master宕机或者重启都不会对Product和Customer产生影响。在所有模式中该模式性能最高，但是被宕机的Master在回复之前其中保存的消息不会被消费。但是在Master节点的磁盘刷新模式上会有要求：<ul>
+<li>同步刷新磁盘：当Broker收到生产者发送的消息时，数据就会同步刷新进入磁盘中。刷新完成后才会向生产者返回成功状态，所以当生产者收到返回状态时消息已经被保存进入磁盘不会丢失。</li>
+<li>异步刷新磁盘：当Broker收到生产者发送的消息会先保存到机器内存中不会实时写入到磁盘，并且同时会向生产者发送成功的状态，只有当内存达到阈值才会批量写入磁盘中。所以这种方式会造成Master宕机后小批量消息丢失。</li>
+</ul>
+<ul>
+<li>多Master多Slave模式：多个Master节点构成且每个Master节点都至少存在一个或者更多个Salve节点，这样的模式下不但可以保证不会出现单点故障且某个Master节点发生故障时，消费者会从Slave节点消费消息，所以不会对消息实时处理产生影响。但是Master和Salve之间的主备方式选择会影响消息处理的效率以及消息完整性：<ul>
+<li>异步复制：Master节点写成功生产者的消息就返回给生产者成功的状态，当生产者收到成功状态的响应时Master的消息不一定会同步到Slave中。所以如果此时Master宕机那么Slave就会丢失一部分数据而无法消费，缺失的消息还保存再Master中，可能不会丢失。（如果是异步刷新的话可能消息会丢失）。性能和多Master差不多。</li>
+<li>同步复制：只有在Master和Slave消息都写入后才会向生产者相应成功的状态。这种方式如果Master宕机消息从Slave继续消费，不会影响消息的实时消费。但是同步写入会增加数据写入延迟，降低消息的吞吐量。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Topic与Broker存储关系"><a href="#Topic与Broker存储关系" class="headerlink" title="Topic与Broker存储关系"></a>Topic与Broker存储关系</h4><p>在Broker中保存每个队列的消息会先按照Topic分片，Topic中是是消息订阅的最小颗粒度，一个Group可以订阅多个Topic,Topic创建方式有两种：</p>
+<ul>
+<li>自动创建：Producter在发送消息时会先从NamerServer拉去Topic路由信息，如果路由信息不存在则会拉去Broker创建时默认的“TBW102”的Topic。</li>
+<li>手动创建：在创建Broker集群和NameServer集群后，在每个Broker上通过命令来创建Topic并指定Topic中相关的参数(<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/345aaa18f71d">Topic参数创建</a>)。或者通过RocketMQ Console来创建Topic。创建的时候可以指定该Topic中队列的数量。<br><img src="/assets/doc-images/rocket_mq_topic.png" alt="队列结构图"><h4 id="Broker实际物理结构"><a href="#Broker实际物理结构" class="headerlink" title="Broker实际物理结构"></a>Broker实际物理结构</h4>Broker中存储所有RocketMQ消息，其中Broker的存储数据结构主要分为三个部分commitLog,customerQueue,index的索引文件。<h5 id="commitLog"><a href="#commitLog" class="headerlink" title="commitLog"></a>commitLog</h5>commitLog是实际存储队列消息的物理文件单个commitLog文件大小为1G，消息写入commitLog的时候采用的是尾部追加的方式写入数据，而customerQueue的数据信息写入是在commitLog写入信息后才构建的。commitLog先从mappedFileQueue获取最后一个MappedFile文件，如果为空就创建一个commitLog对应的MappedFile文件，文件命名以实际以文件大小命名，分别是00000000000000000000、00000000001073741824、00000000002147483648，文件名之间差1G=1024<em>1024</em>1224B=1073741824。每个commitLog的MappedFile文件大小是1G，剩余多余无非存入新消息就用填充字符填充到1G。<h5 id="customerQueue"><a href="#customerQueue" class="headerlink" title="customerQueue"></a>customerQueue</h5>存储的是逻辑队列(其中存储着每条消息的物理存储地址，每个Topic下的MessageQueue都有一个对应的customerQueue文件)。<h5 id="index文件"><a href="#index文件" class="headerlink" title="index文件"></a>index文件</h5>每个索引文件大致包含三部分header，Hash slot,index：<br><img src="/assets/doc-images/rocket_mq_index.png" alt="在这里插入图片描述"></li>
+</ul>
+<ul>
+<li>header：文件主要保存该索引文件元数据：</li>
+</ul>
+<ul>
+<li> beginTimestamp : 该索引文件的第一个消息(Message)的存储时间(落盘时间)  物理位置(pos: 0-7) 8bytes</li>
+<li>endTimestamp : 该索引文件的最后一个消息(Message)的存储时间(落盘时间)  物理位置(pos: 8-15) 8bytes</li>
+<li>beginPhyoffset : 该索引文件第一个消息(Message)的在CommitLog(消息存储文件)的物理位置偏移量(可以通过该物理偏移直接获取到该消息) 物理位置(pos: 16-23) 8bytes</li>
+<li>beginPhyoffset : 该索引文件最后一个消息(Message)的在CommitLog(消息存储文件)的物理位置偏移量 (pos: 24-31) 8bytes</li>
+<li>hashSlotCount : 该索引文件目前的hash slot的个数 (pos: 32-35) 4bytes</li>
+<li>indexCount : 该索引文件目前的索引个数 (pos: 36-39) 4bytes</li>
+</ul>
+<p>在新存储消息的过程中，每个消息存储的时候都会检查一下header中已存索引数是否已经达到最大值，如果达到则重新建立新索引文件。</p>
+<ul>
+<li>solt Table：用来保存每个哈希值的索引数量，但是在初始化时就已经固定大小和数量4bytes*5000000</li>
+<li>index：实际存储索引信息：<ul>
+<li>key hash value: message key的hash值</li>
+<li>phyOffset: message在CommitLog的物理文件地址, 可以直接查询到该消息(索引的核心机制)</li>
+<li>timeDiff: message的落盘时间与header里的beginTimestamp的差值(为了节省存储空间，如果直接存message的落盘时间就得8bytes)</li>
+<li>prevIndex: hash冲突处理的关键之处, 相同hash值上一个消息索引的index(如果当前消息索引是该hash值的第一个索引，则prevIndex=0, 也是消息索引查找时的停止条件。)</li>
+</ul>
+</li>
+</ul>
+<p>其中soltTable中的soltValue偏移量主要是用于在查找对应的索引时提供偏移量，找到该索引最后一个index，再逐个向前开始遍历直到找到对应的值。<br><img src="/assets/doc-images/rocket_mq_broker.png" alt="Broker数据结构"></p>
+<h4 id="Customer"><a href="#Customer" class="headerlink" title="Customer"></a>Customer</h4><h5 id="连接"><a href="#连接" class="headerlink" title="连接"></a>连接</h5><ul>
+<li>Customer与NameServer集群中的某一个保持长连接，定时从NameServer中拉去相关Topic信息，如果被连接的NameServer挂了则自动轮询下一个NameServer建立连接，直到轮询了所有的NameServer集群，定时拉去Topic信息时间可以由参数来控制(DefaultMQPushConsumer的pollNameServerInteval)。</li>
+<li>Customer会与Customer关联的所有Broker建立长连接，默认情况下每隔30s会向所有Customer相关联的Broker发送心跳(DefaultMQPushConsumer的heartbeatBrokerInterval来控制发送心跳的间隔)，Broker每隔10s(固定时间，无法更改)会检查所有的连接所有的连接存活状态，如果某个连接超过2min(无法更改，最新更新时间和当前时间差值)没有收到心跳则断开该链接，并向CustomerGroup发送通知，分组内的消费者重新分配队列继续消费。<h5 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h5>一个CustomerGroup多台机器共同消费一个topic中的多个队列，但是一个队列只会被一个消费者消费，如果某个Customer宕机则分组内的其他消费者会接替宕机的 消费者进行消费。客户端会自行负载均衡拉去消息。(<a target="_blank" rel="noopener" href="https://blog.csdn.net/notOnlyRush/article/details/80358426">负载均衡</a>)<h5 id="消费机制"><a href="#消费机制" class="headerlink" title="消费机制"></a>消费机制</h5>消费者不断从Broker拉去需要消费的消息，消息拉取到本地的消息队列，Customer线程消费本地消息队列内的消息。其中拉去和消费本地这两个步骤是异步的，所以拉取线程不会等待消费线程从而降低消息队列相应时间，解耦合。其中本地消息队列大小、消息拉取到本地间隔时间、消费消息数量都可以手动控制。如果一个消费者绑定了多个队列那在拉取Broker中队列的消息时，会将所有队列都拉去到本地进行消费，但是在拉取的时候是一个个队列轮询拉取，等全部队列都拉去完成后再将拉取任务放到队尾，循环执行拉取。<br>消费者消费消息时会存在两种消费模式Push和Pull两种消费模式本质上都是使用的Pull模式来获取Broker中的消息进行消费：</li>
+</ul>
+<ul>
+<li>Pull模式：该模式下主动权在消费者，Customer会主动拉去对应Topic中Queue的消息(默认间隔时间是5s，但是这个时间可以通过setPullNextDelayTimeMillis来调整，但是最小时间是5s)。每个Queue在拉取的时候都会记录当先消费消息的偏移量、拉去消息量的大小、拉去的间隔时间，各个Customer使用偏移量的来确认每个消费者消费消息的进度以确保消息不会被重复消费。</li>
+<li>Push模式：该模式实际上也是由Pull模式实现的，不过在这种模式下，每个Customer都会在本地注册一个监听器用来监听Broker中对应队列的的消息情况，当Broker的customerQueue中新增消息的时候会触发监听器customesMessage()进行消息的消费，所以看起来是Broker把消息推到Customer中。</li>
+</ul>
+<h4 id="Producer"><a href="#Producer" class="headerlink" title="Producer"></a>Producer</h4><p>与NamerServer和Broker的连接机制和Customer相同。发送分布式事务消息时，如果Producer中途意外宕机，Broker会主动回调Producer Group内的任意一台机器来确认事务状态。</p>
+<h3 id="RocketMQ消息有序性"><a href="#RocketMQ消息有序性" class="headerlink" title="RocketMQ消息有序性"></a>RocketMQ消息有序性</h3><p>RocketMQ顺序消息由两个部分构成顺序发布和顺序消费，但是对于保证消息的顺序性Rocket有两种不同的方案：</p>
+<ul>
+<li>全局顺序：一个Topic内所有的消息按照先进先出的顺序进行发布和消费,单个Topic中只存在一个Queue，但是因为只有一个Queue所以无论生产者或者消费者增加数量始终都会收到Queue性能限制，吞吐量影响较大；</li>
+<li>局部顺序：增加消息ID，根据ID来区分消息类型并发送到同一个Queue中可以让消费者按照顺序来进行消费。在Customer集群在消费消息的时候就可以按照顺序进行消费，每个Customer只有在消费的成功的时候才会返回给Broker确认相应。<ul>
+<li>Producter处理：只需要保证顺序发布，每个Producter通过实现MessageQueueSelector来决定消息队列具体的分区。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 例如订单顺序均为下单，付款，发货即可，只要保证单个订单消息顺序消费</span></span><br><span class="line">  <span class="type">SendResult</span> <span class="variable">sendResult1</span> <span class="operator">=</span> producer.send(msg1, <span class="keyword">new</span> <span class="title class_">MessageQueueSelector</span>() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">public</span> MessageQueue <span class="title function_">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message msg, Object arg)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;, order.orderId);</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>Customer处理：Customer在接收消息时有两种模式Pull和Push，默认Pull方式去拉取。<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/fuyuwei2015/category_7093136.html">PushCustomer</a>：Broker主动向Customer推送消息，在应用中创建Customer队列需要为消费者队列增加Linstener监听器。Push方法里面Customer把轮询方式封装了，并注册了MessageLinstener监听器，获取到消息后唤醒MessageLinstener的CustomerMessage()来消费，对于用户的体验就是被推过来。但是这样的方式每个Customer处理消息的时间就变成了RocketMQ的最大瓶颈，如果某个Customer消费消息所需时间远远大于生产者，那么Broker中消息就会大量堆积，甚至某一消息在CustomerGroup中的所有Customer中被挨个reject和error。</li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/fuyuwei2015/category_7093136.html">PullCustomer</a>：Customer主动去拉取Broker中的定量的消息进行批量消费，消费者首先通过关联的Topic拿到MessageQueue集合，通过遍历MessageQueue来获取指定队列消息，Pull模式中消费者获取消息需要用户自行定义。因为每次是批量拉去消息，所以Broker不用记录每个消息的状态所以在Customer拉去一定量消息时Broker只会记录消息的偏移量和所有消息队列即可。针对慢消息也大大缓解其中Broker消息堆积的压力。针对Customer拉去消息的空档期RocketMQ采用长连接轮询Pull，如果有有某次Pull失败或者为空则不会直接return，而会把该线程挂起wait，直到服务端有新消息到来把连接notify起来。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="RocketMq事务消息的实现机制"><a href="#RocketMq事务消息的实现机制" class="headerlink" title="RocketMq事务消息的实现机制"></a>RocketMq事务消息的实现机制</h3><p>RocketMQ的事务消息主要分为两个阶段prepare和commit/rollback。</p>
+<ul>
+<li>prepare：发送一个消息到Broker中，但是该消息只会保存在commitLog中，而不会像正常的消息一样回写到messageQueue中，所以对于事务消息这个阶段customer是不可见的。发送到Broker中的消息会存在RMQ_SYS_TRANS_HALF_TOPIC这个Topic中，并备份原有的Topic以便commit消息时还原，修改消息queueId为0，并备份消息原有queueId，供后续commit消息时还原消息queueId使用。</li>
+<li>commit/rollback：该阶段会在发送一个commit消息或者rollback消息到rocketMQ中<ul>
+<li>commit：消息会将prepare阶段发送的消息会写到messageQueue中使得customer可以进行递送消费；</li>
+<li>rollback：消息则Broker不会投递该消息存储在Broker中三天自动删除（实际是将消息存入RMQ_SYS_TRANS_OP_HALF_TOPIC这个Topic中）。</li>
+<li>事务回查：Broker未收到任何commit或rollback消息，RocketMQBroker会主动定时进行同一个Group下的Producter进行发送回查消息，而每个Producter需要自行定义TransactionListener并编写其中的checkLocalTransaction方法来实现事务的检查，不过每个事务消息在传递的时候都会附带上transactionId以方便进行事务回查。<a target="_blank" rel="noopener" href="https://blog.csdn.net/hosaos/article/details/90240260">事务回查</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="RocketMq会有重复消费的问题吗？"><a href="#RocketMq会有重复消费的问题吗？" class="headerlink" title="RocketMq会有重复消费的问题吗？"></a>RocketMq会有重复消费的问题吗？</h3><p>会存在重复消费消息的情况，原因在于Customer在消费消息的时候会保存Broker中消息队列中已消费消息的偏移量，但是在每个Customer重启时为了负载均衡新Customer都要去同步消息消费偏移量以确定是否还有未消费的的消息。如果此时C2正在消费消息，在未消费完时C1进行重启，C1在重新计算消费消息偏移量时因为C2还未发送消息消费完成的消息Broker中的偏移量任然是上一个所以相同消息就会被发往C1一份，导致C1，C2消费相同的消息。其实引起消费重复的消息的原因还有很多例如：Broker在消费消息的同时重启、Broker水平扩容、不遵守先订阅后生产消息的原则都会使得消息消费重复。<br>为了解决消费者重复消费问题，消费者应该在消费消息的业务逻辑中增加幂等逻辑。针对每条消息都有唯一的消息ID并且保证消息消费成功与消息去重表的同事出现。</p>
+<h3 id="RocketMq支持什么级别的延迟消息？"><a href="#RocketMq支持什么级别的延迟消息？" class="headerlink" title="RocketMq支持什么级别的延迟消息？"></a>RocketMq支持什么级别的延迟消息？</h3><p>Rocket可以支持秒级别的延迟消息，但是RocketMQ的延迟消息不支持自定义时间，而是在broker创建的时候通过自定义每层Leavel延迟的时间实现的。所以在Broker启动后，如果需要使用延迟消息则再Producter中设置消息时就指定该消息的延迟级别来指定该消息延迟的时间长短。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在Server端的Broker的配置文件中加入以下配置，在使用的是leavel=1就代表延迟1s,level=2就代表延迟5s以此类推。</span></span><br><span class="line"><span class="comment">// 以下设置为Broker中的默认配置，Broker也支持自定义配置级别但是最小只能从1s开始。</span></span><br><span class="line"><span class="comment">// 延迟时间单位从 s（秒）,m（分钟）,h（小时）,d（天）</span></span><br><span class="line">messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h</span><br><span class="line"></span><br><span class="line"><span class="comment">// Producter使用延迟消息</span></span><br><span class="line"><span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Message</span>(topic, tags, keys, body);</span><br><span class="line"><span class="comment">// 设置延迟级别</span></span><br><span class="line">msg.setDelayTimeLevel(<span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="延迟消息实现"><a href="#延迟消息实现" class="headerlink" title="延迟消息实现"></a>延迟消息实现</h4><ol>
+<li>Producter发送延迟消息到Broker中，Broker将消息只保存到commitLog中使得消息暂时不可见，返回Producter确认消息；</li>
+<li>消费线程将消息保存到SCHEDULE_TOPIC_XXX的Topic中的队列中，并会根据消息的延迟粒度(上面提到的额延迟级别)来当做queueId；</li>
+<li>Borker启动定时任务针对SCHEDULE_TOPIC_XXX下每个队列都启动一个线程进行消费，定时任务每隔0.1s就会检查每个队列中的消息的延迟时间和当前时间来判断是否已经到达时间，如果到达时间则将该消息写入customerQueue中(消息可见)。<br>(SCHEDULE_TOPIC_XXX中保存的消息只是针对commitLog中消息位置的偏移量进行了一层封装，Broker中实际的消息存储位置只会是commitLog)</li>
+</ol>
+<h3 id="RocketMQ是推模型还是拉模型？"><a href="#RocketMQ是推模型还是拉模型？" class="headerlink" title="RocketMQ是推模型还是拉模型？"></a>RocketMQ是推模型还是拉模型？</h3><p>RocketMq的消费者支持Push和Pull两种消息消费模式，但是实际上Push模式也是通过Pull模式和Customer注册监听器实现的。所以RocketMQ实际上是由Pull模型实现的。</p>
+<h3 id="Consumer的负载均衡是怎么样的？"><a href="#Consumer的负载均衡是怎么样的？" class="headerlink" title="Consumer的负载均衡是怎么样的？"></a>Consumer的负载均衡是怎么样的？</h3><p>RocketMQ的消费负载均衡是在Customer中实现的，而不是在Broker中，Broker只起到转发和保存消息队列数据作用。Customer通过AllocateMessageQueueStrategy 来进行队列的分配，并提供了多种已集成的实现：AllocateMessageQueueAveragely（平均分配，默认），AllocateMessageQueueAveragelyByCircle（循环分配）、AllocateMessageQueueConsistentHash（一致性哈希）、AllocateMessageQueueByConfig（更具配置进行分配），AllocateMessageQueueByMachineRoom（根据机房分配）、AllocateMachineRoomNearby（就近分配）。<br>以AllocateMessageQueueAveragely为例：</p>
+<ul>
+<li>queue个数大于Consumer个数，且queue个数能整除Consumer个数的话， 那么Consumer会平均分配queue。（比如上面表格的Consumer有2个 可以整除部分）</li>
+<li>queue个数大于Consumer个数，且queue个数不能整除Consumer个数的话， 那么会有一个Consumer多消费1个queue，其余Consumer平均分配。（比如上面表格的Consumer有3个 不可整除部分）</li>
+<li>queue个数小于Consumer个数，那么会有Consumer闲置，就是浪费掉了，其余Consumer平均分配到queue上。（比如上面表格的Consumer有5个 无法都分配部分）<br> 当一个consumer出现宕机后，默认最多20s，其它机器将重新消费已宕机的机器消费的queue。</li>
+</ul>
+
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>感谢打赏<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">MQ</a>
         		</li>
       		
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/05/24/RocketMQ/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
+  
+<nav id="article-nav">
   
   
-    </div></section>
+    <a href="/2023/05/24/JVM/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">JVM</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+        <div class="toc-container tooltip-left">
+            <i class="icon-font icon-category"></i>
+            <div class="tooltip tooltip-east">
+                <span class="tooltip-item">
+                </span>
+                <span class="tooltip-content">
+                    <div class="toc-article">
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#RocketMQ"><span class="toc-number">1.</span> <span class="toc-text">RocketMQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RocketMQ%E7%BB%93%E6%9E%84%E7%BB%84%E6%88%90"><span class="toc-number">1.1.</span> <span class="toc-text">RocketMQ结构组成</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NamerServer"><span class="toc-number">1.1.1.</span> <span class="toc-text">NamerServer</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Broker"><span class="toc-number">1.1.2.</span> <span class="toc-text">Broker</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">部署模式</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Topic%E4%B8%8EBroker%E5%AD%98%E5%82%A8%E5%85%B3%E7%B3%BB"><span class="toc-number">1.1.3.</span> <span class="toc-text">Topic与Broker存储关系</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Broker%E5%AE%9E%E9%99%85%E7%89%A9%E7%90%86%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.4.</span> <span class="toc-text">Broker实际物理结构</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#commitLog"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">commitLog</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#customerQueue"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">customerQueue</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#index%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.4.3.</span> <span class="toc-text">index文件</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Customer"><span class="toc-number">1.1.5.</span> <span class="toc-text">Customer</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5"><span class="toc-number">1.1.5.1.</span> <span class="toc-text">连接</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">1.1.5.2.</span> <span class="toc-text">负载均衡</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E6%9C%BA%E5%88%B6"><span class="toc-number">1.1.5.3.</span> <span class="toc-text">消费机制</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Producer"><span class="toc-number">1.1.6.</span> <span class="toc-text">Producer</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RocketMQ%E6%B6%88%E6%81%AF%E6%9C%89%E5%BA%8F%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">RocketMQ消息有序性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RocketMq%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">1.3.</span> <span class="toc-text">RocketMq事务消息的实现机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RocketMq%E4%BC%9A%E6%9C%89%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9%E7%9A%84%E9%97%AE%E9%A2%98%E5%90%97%EF%BC%9F"><span class="toc-number">1.4.</span> <span class="toc-text">RocketMq会有重复消费的问题吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RocketMq%E6%94%AF%E6%8C%81%E4%BB%80%E4%B9%88%E7%BA%A7%E5%88%AB%E7%9A%84%E5%BB%B6%E8%BF%9F%E6%B6%88%E6%81%AF%EF%BC%9F"><span class="toc-number">1.5.</span> <span class="toc-text">RocketMq支持什么级别的延迟消息？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BB%B6%E8%BF%9F%E6%B6%88%E6%81%AF%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.5.1.</span> <span class="toc-text">延迟消息实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RocketMQ%E6%98%AF%E6%8E%A8%E6%A8%A1%E5%9E%8B%E8%BF%98%E6%98%AF%E6%8B%89%E6%A8%A1%E5%9E%8B%EF%BC%9F"><span class="toc-number">1.6.</span> <span class="toc-text">RocketMQ是推模型还是拉模型？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Consumer%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E6%98%AF%E6%80%8E%E4%B9%88%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-number">1.7.</span> <span class="toc-text">Consumer的负载均衡是怎么样的？</span></a></li></ol></li></ol>
+                    </div>
+                </span>
+            </div>
+        </div>
+        
+    </div>
+</aside>
+
+
+
+  
+  
+  
+  <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+<script>
+  var cloudTieConfig = {
+    url: "http://example.com/2023/05/24/RocketMQ/", 
+    sourceId: "RocketMQ",
+    productKey: "true",
+    target: "cloud-tie-wrapper"
+  };
+</script>
+<script src="//img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script>
   
 
-    
+  
+
+  
+
+  
 
 
           </div>
@@ -218,9 +453,9 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
-		isTag: true,
+		isTag: false,
 		isCategory: false,
 		open_in_new: true,
 		toc_hide_index: true,

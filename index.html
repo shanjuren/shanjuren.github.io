@@ -144,13 +144,627 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Dubbo源码阅读" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-RocketMQ" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2023/05/24/RocketMQ/">RocketMQ</a>
+    </h1>
+  
+
+        
+        <a href="/2023/05/24/RocketMQ/" class="archive-article-date">
+  	<time datetime="2023-05-24T09:22:10.014Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
+</a>
+        
+      </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Dubbo"><a href="#Dubbo" class="headerlink" title="Dubbo"></a>Dubbo</h1><h2 id="结构介绍"><a href="#结构介绍" class="headerlink" title="结构介绍"></a>结构介绍</h2><p><img src="/assets/doc-images/dubbo_strcuts.png" alt="在这里插入图片描述"></p>
-<p><img src="/assets/doc-images/dubbo_strcuts_2.png" alt="Dubbo层级划分"></p>
+        <h2 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h2><p><img src="/assets/doc-images/rocket_mq_structs.png" alt="RocketMQ部署图"></p>
+<h3 id="RocketMQ结构组成"><a href="#RocketMQ结构组成" class="headerlink" title="RocketMQ结构组成"></a>RocketMQ结构组成</h3><p>RockMQ由四个部分构成：</p>
+<h4 id="NamerServer"><a href="#NamerServer" class="headerlink" title="NamerServer"></a>NamerServer</h4><p>无状态节点，可集群部署，但是节点之间无通信。该节点主要存储Producer和Customer的配置信息和状态信息、Broker集群配置信息和元信息。相比于Zookeeper的分布式协调，NameServer更加轻量级不会存在自动选举能力，因为MasterBroker中不会保存所有的Topic所以集群式的NameServer失去选举机制的意义而且又是跟轻量级的任务协调框架。</p>
+<h4 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h4><p>消息存储者和转发者，Broker主要提供服务的部分。单个Broker会对所有NameServer节点保持长连接心跳，并且会定时将Topic信息注册到NameServer中。Broker同样还负责存储消息，以Topic为维度支持轻量级队列，支持消息推拉模型。(Broker实际上可以支持几十万队列消息存储，并可以保证严格顺序。</p>
+<h5 id="部署模式"><a href="#部署模式" class="headerlink" title="部署模式"></a>部署模式</h5><ul>
+<li>单Master模式，只有单个节点，很脆弱。存在单点故障。</li>
+<li>单Master多Slave模式，该模式相比于单Master模式增加读的性能，但是依然存在单点故障。</li>
+<li>多Master模式，多个Master节点组成的集群，单个Master宕机或者重启都不会对Product和Customer产生影响。在所有模式中该模式性能最高，但是被宕机的Master在回复之前其中保存的消息不会被消费。但是在Master节点的磁盘刷新模式上会有要求：<ul>
+<li>同步刷新磁盘：当Broker收到生产者发送的消息时，数据就会同步刷新进入磁盘中。刷新完成后才会向生产者返回成功状态，所以当生产者收到返回状态时消息已经被保存进入磁盘不会丢失。</li>
+<li>异步刷新磁盘：当Broker收到生产者发送的消息会先保存到机器内存中不会实时写入到磁盘，并且同时会向生产者发送成功的状态，只有当内存达到阈值才会批量写入磁盘中。所以这种方式会造成Master宕机后小批量消息丢失。</li>
+</ul>
+<ul>
+<li>多Master多Slave模式：多个Master节点构成且每个Master节点都至少存在一个或者更多个Salve节点，这样的模式下不但可以保证不会出现单点故障且某个Master节点发生故障时，消费者会从Slave节点消费消息，所以不会对消息实时处理产生影响。但是Master和Salve之间的主备方式选择会影响消息处理的效率以及消息完整性：<ul>
+<li>异步复制：Master节点写成功生产者的消息就返回给生产者成功的状态，当生产者收到成功状态的响应时Master的消息不一定会同步到Slave中。所以如果此时Master宕机那么Slave就会丢失一部分数据而无法消费，缺失的消息还保存再Master中，可能不会丢失。（如果是异步刷新的话可能消息会丢失）。性能和多Master差不多。</li>
+<li>同步复制：只有在Master和Slave消息都写入后才会向生产者相应成功的状态。这种方式如果Master宕机消息从Slave继续消费，不会影响消息的实时消费。但是同步写入会增加数据写入延迟，降低消息的吞吐量。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Topic与Broker存储关系"><a href="#Topic与Broker存储关系" class="headerlink" title="Topic与Broker存储关系"></a>Topic与Broker存储关系</h4><p>在Broker中保存每个队列的消息会先按照Topic分片，Topic中是是消息订阅的最小颗粒度，一个Group可以订阅多个Topic,Topic创建方式有两种：</p>
+<ul>
+<li>自动创建：Producter在发送消息时会先从NamerServer拉去Topic路由信息，如果路由信息不存在则会拉去Broker创建时默认的“TBW102”的Topic。</li>
+<li>手动创建：在创建Broker集群和NameServer集群后，在每个Broker上通过命令来创建Topic并指定Topic中相关的参数(<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/345aaa18f71d">Topic参数创建</a>)。或者通过RocketMQ Console来创建Topic。创建的时候可以指定该Topic中队列的数量。<br><img src="/assets/doc-images/rocket_mq_topic.png" alt="队列结构图"><h4 id="Broker实际物理结构"><a href="#Broker实际物理结构" class="headerlink" title="Broker实际物理结构"></a>Broker实际物理结构</h4>Broker中存储所有RocketMQ消息，其中Broker的存储数据结构主要分为三个部分commitLog,customerQueue,index的索引文件。<h5 id="commitLog"><a href="#commitLog" class="headerlink" title="commitLog"></a>commitLog</h5>commitLog是实际存储队列消息的物理文件单个commitLog文件大小为1G，消息写入commitLog的时候采用的是尾部追加的方式写入数据，而customerQueue的数据信息写入是在commitLog写入信息后才构建的。commitLog先从mappedFileQueue获取最后一个MappedFile文件，如果为空就创建一个commitLog对应的MappedFile文件，文件命名以实际以文件大小命名，分别是00000000000000000000、00000000001073741824、00000000002147483648，文件名之间差1G=1024<em>1024</em>1224B=1073741824。每个commitLog的MappedFile文件大小是1G，剩余多余无非存入新消息就用填充字符填充到1G。<h5 id="customerQueue"><a href="#customerQueue" class="headerlink" title="customerQueue"></a>customerQueue</h5>存储的是逻辑队列(其中存储着每条消息的物理存储地址，每个Topic下的MessageQueue都有一个对应的customerQueue文件)。<h5 id="index文件"><a href="#index文件" class="headerlink" title="index文件"></a>index文件</h5>每个索引文件大致包含三部分header，Hash slot,index：<br><img src="/assets/doc-images/rocket_mq_index.png" alt="在这里插入图片描述"></li>
+</ul>
+<ul>
+<li>header：文件主要保存该索引文件元数据：</li>
+</ul>
+<ul>
+<li> beginTimestamp : 该索引文件的第一个消息(Message)的存储时间(落盘时间)  物理位置(pos: 0-7) 8bytes</li>
+<li>endTimestamp : 该索引文件的最后一个消息(Message)的存储时间(落盘时间)  物理位置(pos: 8-15) 8bytes</li>
+<li>beginPhyoffset : 该索引文件第一个消息(Message)的在CommitLog(消息存储文件)的物理位置偏移量(可以通过该物理偏移直接获取到该消息) 物理位置(pos: 16-23) 8bytes</li>
+<li>beginPhyoffset : 该索引文件最后一个消息(Message)的在CommitLog(消息存储文件)的物理位置偏移量 (pos: 24-31) 8bytes</li>
+<li>hashSlotCount : 该索引文件目前的hash slot的个数 (pos: 32-35) 4bytes</li>
+<li>indexCount : 该索引文件目前的索引个数 (pos: 36-39) 4bytes</li>
+</ul>
+<p>在新存储消息的过程中，每个消息存储的时候都会检查一下header中已存索引数是否已经达到最大值，如果达到则重新建立新索引文件。</p>
+<ul>
+<li>solt Table：用来保存每个哈希值的索引数量，但是在初始化时就已经固定大小和数量4bytes*5000000</li>
+<li>index：实际存储索引信息：<ul>
+<li>key hash value: message key的hash值</li>
+<li>phyOffset: message在CommitLog的物理文件地址, 可以直接查询到该消息(索引的核心机制)</li>
+<li>timeDiff: message的落盘时间与header里的beginTimestamp的差值(为了节省存储空间，如果直接存message的落盘时间就得8bytes)</li>
+<li>prevIndex: hash冲突处理的关键之处, 相同hash值上一个消息索引的index(如果当前消息索引是该hash值的第一个索引，则prevIndex=0, 也是消息索引查找时的停止条件。)</li>
+</ul>
+</li>
+</ul>
+<p>其中soltTable中的soltValue偏移量主要是用于在查找对应的索引时提供偏移量，找到该索引最后一个index，再逐个向前开始遍历直到找到对应的值。<br><img src="/assets/doc-images/rocket_mq_broker.png" alt="Broker数据结构"></p>
+<h4 id="Customer"><a href="#Customer" class="headerlink" title="Customer"></a>Customer</h4><h5 id="连接"><a href="#连接" class="headerlink" title="连接"></a>连接</h5><ul>
+<li>Customer与NameServer集群中的某一个保持长连接，定时从NameServer中拉去相关Topic信息，如果被连接的NameServer挂了则自动轮询下一个NameServer建立连接，直到轮询了所有的NameServer集群，定时拉去Topic信息时间可以由参数来控制(DefaultMQPushConsumer的pollNameServerInteval)。</li>
+<li>Customer会与Customer关联的所有Broker建立长连接，默认情况下每隔30s会向所有Customer相关联的Broker发送心跳(DefaultMQPushConsumer的heartbeatBrokerInterval来控制发送心跳的间隔)，Broker每隔10s(固定时间，无法更改)会检查所有的连接所有的连接存活状态，如果某个连接超过2min(无法更改，最新更新时间和当前时间差值)没有收到心跳则断开该链接，并向CustomerGroup发送通知，分组内的消费者重新分配队列继续消费。<h5 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h5>一个CustomerGroup多台机器共同消费一个topic中的多个队列，但是一个队列只会被一个消费者消费，如果某个Customer宕机则分组内的其他消费者会接替宕机的 消费者进行消费。客户端会自行负载均衡拉去消息。(<a target="_blank" rel="noopener" href="https://blog.csdn.net/notOnlyRush/article/details/80358426">负载均衡</a>)<h5 id="消费机制"><a href="#消费机制" class="headerlink" title="消费机制"></a>消费机制</h5>消费者不断从Broker拉去需要消费的消息，消息拉取到本地的消息队列，Customer线程消费本地消息队列内的消息。其中拉去和消费本地这两个步骤是异步的，所以拉取线程不会等待消费线程从而降低消息队列相应时间，解耦合。其中本地消息队列大小、消息拉取到本地间隔时间、消费消息数量都可以手动控制。如果一个消费者绑定了多个队列那在拉取Broker中队列的消息时，会将所有队列都拉去到本地进行消费，但是在拉取的时候是一个个队列轮询拉取，等全部队列都拉去完成后再将拉取任务放到队尾，循环执行拉取。<br>消费者消费消息时会存在两种消费模式Push和Pull两种消费模式本质上都是使用的Pull模式来获取Broker中的消息进行消费：</li>
+</ul>
+<ul>
+<li>Pull模式：该模式下主动权在消费者，Customer会主动拉去对应Topic中Queue的消息(默认间隔时间是5s，但是这个时间可以通过setPullNextDelayTimeMillis来调整，但是最小时间是5s)。每个Queue在拉取的时候都会记录当先消费消息的偏移量、拉去消息量的大小、拉去的间隔时间，各个Customer使用偏移量的来确认每个消费者消费消息的进度以确保消息不会被重复消费。</li>
+<li>Push模式：该模式实际上也是由Pull模式实现的，不过在这种模式下，每个Customer都会在本地注册一个监听器用来监听Broker中对应队列的的消息情况，当Broker的customerQueue中新增消息的时候会触发监听器customesMessage()进行消息的消费，所以看起来是Broker把消息推到Customer中。</li>
+</ul>
+<h4 id="Producer"><a href="#Producer" class="headerlink" title="Producer"></a>Producer</h4><p>与NamerServer和Broker的连接机制和Customer相同。发送分布式事务消息时，如果Producer中途意外宕机，Broker会主动回调Producer Group内的任意一台机器来确认事务状态。</p>
+<h3 id="RocketMQ消息有序性"><a href="#RocketMQ消息有序性" class="headerlink" title="RocketMQ消息有序性"></a>RocketMQ消息有序性</h3><p>RocketMQ顺序消息由两个部分构成顺序发布和顺序消费，但是对于保证消息的顺序性Rocket有两种不同的方案：</p>
+<ul>
+<li>全局顺序：一个Topic内所有的消息按照先进先出的顺序进行发布和消费,单个Topic中只存在一个Queue，但是因为只有一个Queue所以无论生产者或者消费者增加数量始终都会收到Queue性能限制，吞吐量影响较大；</li>
+<li>局部顺序：增加消息ID，根据ID来区分消息类型并发送到同一个Queue中可以让消费者按照顺序来进行消费。在Customer集群在消费消息的时候就可以按照顺序进行消费，每个Customer只有在消费的成功的时候才会返回给Broker确认相应。<ul>
+<li>Producter处理：只需要保证顺序发布，每个Producter通过实现MessageQueueSelector来决定消息队列具体的分区。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 例如订单顺序均为下单，付款，发货即可，只要保证单个订单消息顺序消费</span></span><br><span class="line">  <span class="type">SendResult</span> <span class="variable">sendResult1</span> <span class="operator">=</span> producer.send(msg1, <span class="keyword">new</span> <span class="title class_">MessageQueueSelector</span>() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">public</span> MessageQueue <span class="title function_">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message msg, Object arg)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;, order.orderId);</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>Customer处理：Customer在接收消息时有两种模式Pull和Push，默认Pull方式去拉取。<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/fuyuwei2015/category_7093136.html">PushCustomer</a>：Broker主动向Customer推送消息，在应用中创建Customer队列需要为消费者队列增加Linstener监听器。Push方法里面Customer把轮询方式封装了，并注册了MessageLinstener监听器，获取到消息后唤醒MessageLinstener的CustomerMessage()来消费，对于用户的体验就是被推过来。但是这样的方式每个Customer处理消息的时间就变成了RocketMQ的最大瓶颈，如果某个Customer消费消息所需时间远远大于生产者，那么Broker中消息就会大量堆积，甚至某一消息在CustomerGroup中的所有Customer中被挨个reject和error。</li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/fuyuwei2015/category_7093136.html">PullCustomer</a>：Customer主动去拉取Broker中的定量的消息进行批量消费，消费者首先通过关联的Topic拿到MessageQueue集合，通过遍历MessageQueue来获取指定队列消息，Pull模式中消费者获取消息需要用户自行定义。因为每次是批量拉去消息，所以Broker不用记录每个消息的状态所以在Customer拉去一定量消息时Broker只会记录消息的偏移量和所有消息队列即可。针对慢消息也大大缓解其中Broker消息堆积的压力。针对Customer拉去消息的空档期RocketMQ采用长连接轮询Pull，如果有有某次Pull失败或者为空则不会直接return，而会把该线程挂起wait，直到服务端有新消息到来把连接notify起来。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="RocketMq事务消息的实现机制"><a href="#RocketMq事务消息的实现机制" class="headerlink" title="RocketMq事务消息的实现机制"></a>RocketMq事务消息的实现机制</h3><p>RocketMQ的事务消息主要分为两个阶段prepare和commit/rollback。</p>
+<ul>
+<li>prepare：发送一个消息到Broker中，但是该消息只会保存在commitLog中，而不会像正常的消息一样回写到messageQueue中，所以对于事务消息这个阶段customer是不可见的。发送到Broker中的消息会存在RMQ_SYS_TRANS_HALF_TOPIC这个Topic中，并备份原有的Topic以便commit消息时还原，修改消息queueId为0，并备份消息原有queueId，供后续commit消息时还原消息queueId使用。</li>
+<li>commit/rollback：该阶段会在发送一个commit消息或者rollback消息到rocketMQ中<ul>
+<li>commit：消息会将prepare阶段发送的消息会写到messageQueue中使得customer可以进行递送消费；</li>
+<li>rollback：消息则Broker不会投递该消息存储在Broker中三天自动删除（实际是将消息存入RMQ_SYS_TRANS_OP_HALF_TOPIC这个Topic中）。</li>
+<li>事务回查：Broker未收到任何commit或rollback消息，RocketMQBroker会主动定时进行同一个Group下的Producter进行发送回查消息，而每个Producter需要自行定义TransactionListener并编写其中的checkLocalTransaction方法来实现事务的检查，不过每个事务消息在传递的时候都会附带上transactionId以方便进行事务回查。<a target="_blank" rel="noopener" href="https://blog.csdn.net/hosaos/article/details/90240260">事务回查</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="RocketMq会有重复消费的问题吗？"><a href="#RocketMq会有重复消费的问题吗？" class="headerlink" title="RocketMq会有重复消费的问题吗？"></a>RocketMq会有重复消费的问题吗？</h3><p>会存在重复消费消息的情况，原因在于Customer在消费消息的时候会保存Broker中消息队列中已消费消息的偏移量，但是在每个Customer重启时为了负载均衡新Customer都要去同步消息消费偏移量以确定是否还有未消费的的消息。如果此时C2正在消费消息，在未消费完时C1进行重启，C1在重新计算消费消息偏移量时因为C2还未发送消息消费完成的消息Broker中的偏移量任然是上一个所以相同消息就会被发往C1一份，导致C1，C2消费相同的消息。其实引起消费重复的消息的原因还有很多例如：Broker在消费消息的同时重启、Broker水平扩容、不遵守先订阅后生产消息的原则都会使得消息消费重复。<br>为了解决消费者重复消费问题，消费者应该在消费消息的业务逻辑中增加幂等逻辑。针对每条消息都有唯一的消息ID并且保证消息消费成功与消息去重表的同事出现。</p>
+<h3 id="RocketMq支持什么级别的延迟消息？"><a href="#RocketMq支持什么级别的延迟消息？" class="headerlink" title="RocketMq支持什么级别的延迟消息？"></a>RocketMq支持什么级别的延迟消息？</h3><p>Rocket可以支持秒级别的延迟消息，但是RocketMQ的延迟消息不支持自定义时间，而是在broker创建的时候通过自定义每层Leavel延迟的时间实现的。所以在Broker启动后，如果需要使用延迟消息则再Producter中设置消息时就指定该消息的延迟级别来指定该消息延迟的时间长短。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在Server端的Broker的配置文件中加入以下配置，在使用的是leavel=1就代表延迟1s,level=2就代表延迟5s以此类推。</span></span><br><span class="line"><span class="comment">// 以下设置为Broker中的默认配置，Broker也支持自定义配置级别但是最小只能从1s开始。</span></span><br><span class="line"><span class="comment">// 延迟时间单位从 s（秒）,m（分钟）,h（小时）,d（天）</span></span><br><span class="line">messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h</span><br><span class="line"></span><br><span class="line"><span class="comment">// Producter使用延迟消息</span></span><br><span class="line"><span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Message</span>(topic, tags, keys, body);</span><br><span class="line"><span class="comment">// 设置延迟级别</span></span><br><span class="line">msg.setDelayTimeLevel(<span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="延迟消息实现"><a href="#延迟消息实现" class="headerlink" title="延迟消息实现"></a>延迟消息实现</h4><ol>
+<li>Producter发送延迟消息到Broker中，Broker将消息只保存到commitLog中使得消息暂时不可见，返回Producter确认消息；</li>
+<li>消费线程将消息保存到SCHEDULE_TOPIC_XXX的Topic中的队列中，并会根据消息的延迟粒度(上面提到的额延迟级别)来当做queueId；</li>
+<li>Borker启动定时任务针对SCHEDULE_TOPIC_XXX下每个队列都启动一个线程进行消费，定时任务每隔0.1s就会检查每个队列中的消息的延迟时间和当前时间来判断是否已经到达时间，如果到达时间则将该消息写入customerQueue中(消息可见)。<br>(SCHEDULE_TOPIC_XXX中保存的消息只是针对commitLog中消息位置的偏移量进行了一层封装，Broker中实际的消息存储位置只会是commitLog)</li>
+</ol>
+<h3 id="RocketMQ是推模型还是拉模型？"><a href="#RocketMQ是推模型还是拉模型？" class="headerlink" title="RocketMQ是推模型还是拉模型？"></a>RocketMQ是推模型还是拉模型？</h3><p>RocketMq的消费者支持Push和Pull两种消息消费模式，但是实际上Push模式也是通过Pull模式和Customer注册监听器实现的。所以RocketMQ实际上是由Pull模型实现的。</p>
+<h3 id="Consumer的负载均衡是怎么样的？"><a href="#Consumer的负载均衡是怎么样的？" class="headerlink" title="Consumer的负载均衡是怎么样的？"></a>Consumer的负载均衡是怎么样的？</h3><p>RocketMQ的消费负载均衡是在Customer中实现的，而不是在Broker中，Broker只起到转发和保存消息队列数据作用。Customer通过AllocateMessageQueueStrategy 来进行队列的分配，并提供了多种已集成的实现：AllocateMessageQueueAveragely（平均分配，默认），AllocateMessageQueueAveragelyByCircle（循环分配）、AllocateMessageQueueConsistentHash（一致性哈希）、AllocateMessageQueueByConfig（更具配置进行分配），AllocateMessageQueueByMachineRoom（根据机房分配）、AllocateMachineRoomNearby（就近分配）。<br>以AllocateMessageQueueAveragely为例：</p>
+<ul>
+<li>queue个数大于Consumer个数，且queue个数能整除Consumer个数的话， 那么Consumer会平均分配queue。（比如上面表格的Consumer有2个 可以整除部分）</li>
+<li>queue个数大于Consumer个数，且queue个数不能整除Consumer个数的话， 那么会有一个Consumer多消费1个queue，其余Consumer平均分配。（比如上面表格的Consumer有3个 不可整除部分）</li>
+<li>queue个数小于Consumer个数，那么会有Consumer闲置，就是浪费掉了，其余Consumer平均分配到queue上。（比如上面表格的Consumer有5个 无法都分配部分）<br> 当一个consumer出现宕机后，默认最多20s，其它机器将重新消费已宕机的机器消费的queue。</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">MQ</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2023/05/24/RocketMQ/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-JVM" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2023/05/24/JVM/">JVM</a>
+    </h1>
+  
+
+        
+        <a href="/2023/05/24/JVM/" class="archive-article-date">
+  	<time datetime="2023-05-24T09:10:19.975Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h1><h2 id="内存结构"><a href="#内存结构" class="headerlink" title="内存结构"></a>内存结构</h2><ul>
+<li><p>类加载子系统：负责从文件系统或者远端网络加载Class信息，加载子系统会将Class信息存放到方法区中。</p>
+</li>
+<li><p>Java堆：java虚拟机运行时主要的内存空间，虚拟机启动时被创建出来，用来存放几乎所有实例对象。堆空间是对所有线程共享的。虚拟机启动时分配并占用大部分内存，线程共享。其中堆内存在分为Eden区，新生代，老年代。</p>
+<ul>
+<li>Eden区：负责收容新生对象，但是若是创建时需要较大内存则会被直接交给老年代进行分配内存；</li>
+<li>新生代：新生代内部会创建两个大小相同的Survivor区（from,to），Eden创建对象后经过一次Minor GC后就会被转移到某一个Survivor区，新生代使用复制算法来不断在两个Survivor区不断转移对象，直到被转移至老年代。</li>
+<li>老年代：老年代会存放两种对象：<ul>
+<li>1、创建时过大的对象会直接被分配到老年代</li>
+<li>2、新生代经过可控次数（默认15次）转移后的对象会被下放到老年代<br>老年代的内存不足时使用Full GC(标记-清除)来进行内存回收。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>直接内存：直接内存却别与Java堆，是直接向虚拟机进行申请内存的，所以读写性能会比Java堆更好，而且不会受JVM的参数Xms影响，所能分配的大小只取决于当前系统所能分配的最大内存。</p>
+</li>
+<li><p>垃圾回收系统：JVM的内存回收系统，用来处理JVM运行时已经不再引用的对象或者方法。用来保证JVM正常运行所需内存大小。JVM再GC时会对方法区和Java堆同时进行扫描和清理。</p>
+</li>
+<li><p>Java栈：每个虚拟机线线程都有一个私有的Java栈，在线程被创建时创建。其中保存帧信息，局部变量，方法参数，同时和Java方法调用和返回也有密切的关系。</p>
+</li>
+<li><p>本地方法栈：类似于Java栈，但是Java栈是用于方法的调用，而本地方法栈是用于本地方法的调用，JVM虚拟机允许Java的方法直接调用本地方法（native修饰的方法，其方法是由非Java构成的，用于与JVM以外的部分进行交互，比如硬件，操作系统等等）</p>
+</li>
+<li><p>PC寄存器（程序计数器）：每个线程都保存有一个私有的程序计数器，其内存空间占用非常小，实际上就是一个指针用来只想下一个将要执行的指令代码。</p>
+</li>
+<li><p>执行引擎：负责执行虚拟机的机器码，实际上Java在编译.java文件的时候会将其中方法和变量都编译成JVM的机器码的class文件，class文件其中存储的其实就是二进制的机器码。<br><img src="/assets/doc-images/jvm_structs.png" alt="JVM所有结构"><br>但是在实际运行时，JVM内存大致只会划分为五部分 方法区(线程共享)、Java堆(线程共享)、Java栈(线程私有)、本地方法栈(线程私有)、(程序计数器)</p>
+</li>
+</ul>
+<h3 id="程序运行内存分配"><a href="#程序运行内存分配" class="headerlink" title="程序运行内存分配"></a>程序运行内存分配</h3><h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><p>在JVM中引用从强到弱分为四类强引用、软引用、弱引用、虚引用。</p>
+<ul>
+<li>强引用： 类似于 Object a = new Object()，只要a的生命周期没有结束或者a的指针没有指向null，该对象就永远不会被GC。</li>
+<li>软引用：Java中使用SoftReference来时实现软引用，在内存充足的时候和强引用没有区别，在内存不足需要GC是，软引用会被GC回收。一般适用于缓存。memchare,JVM自带的缓存</li>
+<li>弱引用：Java中使用WeakReference来实现弱引用，无论内存是否充足，在下一次GC的时候都会被回收。一般用在容器里，例如ThreadLocal，ThreadLocal中的ThreadLocalMap的Key是弱引用指向了ThreadLocal（Key被置为null但是其Value引用依然存在但是无法取出就会产生内存泄漏，所以使用完必须清空ThreadLocal）。</li>
+<li>虚引用：JDK使用PhantomReference来实现虚引用，无法通过虚引用来获取实例对象，随时会被GC回收。虚引用的存在不会对对象的生存时间构成任何影响，为一个对象设置虚引用的唯一目的就是能在这个对象被收集器回收时收到一个系统通知。堆外内存</li>
+</ul>
+<h2 id="类加载"><a href="#类加载" class="headerlink" title="类加载"></a>类加载</h2><h3 id="加载流程"><a href="#加载流程" class="headerlink" title="加载流程"></a>加载流程</h3><p>装载–&gt;验证–&gt;准备–&gt;解析–&gt;初始化</p>
+<h4 id="1-装载："><a href="#1-装载：" class="headerlink" title="1.装载："></a>1.装载：</h4><p>(1).通过一个类的全限定名来获取定义此类的二进制字节流。</p>
+<p>(2).将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。</p>
+<p>(3).在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个类的各种数据的访问入口。</p>
+<h4 id="2-验证："><a href="#2-验证：" class="headerlink" title="2.验证："></a>2.验证：</h4><p>确定class文件字节流符合JVM要求，安检。主要检查其中文件格式（文件开头格式、版本号、变量类型、语义、符号等等）</p>
+<h5 id="1-文件格式验证："><a href="#1-文件格式验证：" class="headerlink" title="1.文件格式验证："></a>1.文件格式验证：</h5><p>（1）是否以魔数0xCAFEBABE开头。<br>（2）主、次版本号是否在当前虚拟机处理范围之内。<br>（3）常量池的常量中是否有不被支持的常量类型（检查常量tag标志）。<br>（4）指向常量的各种索引值中是否有指向不存在的常量或不符合类型的常量。<br>（5）CONSTANT_Utf8_info型的常量中是否有不符合UTF8编码的数据。<br>（6）Class文件中各个部分及文件本身是否有被删除的或附加的其他信息。<br>……</p>
+<h5 id="2-元数据验证："><a href="#2-元数据验证：" class="headerlink" title="2.元数据验证："></a>2.元数据验证：</h5><p>（1）这个类是否有父类（除了java.lang.Object之外，所有类都应当有父类）。<br>（2）这个类是否继承了不允许被继承的类（被final修饰的类）。<br>（3）如果这个类不是抽象类，是否实现了其父类或接口之中所要求实现的所有方法。<br>（4）类中的字段、方法是否与父类产生矛盾（例如覆盖了父类的final字段，或者出现不符合规则的方法重载，例如方法参数都一致，但返回值类型却不同等等）。<br>……</p>
+<h5 id="3-字节码验证："><a href="#3-字节码验证：" class="headerlink" title="3.字节码验证："></a>3.字节码验证：</h5><p>主要目的是通过数据流和控制流分析，确定程序语义是合法的、符合逻辑的。这个阶段将对类的方法体进行校验分析，保证被校验类的方法在运行时不会产生危害虚拟机安全的事件，例如：<br>（1）保证任意时刻操作数栈的数据类型与指令代码序列都能配合工作，例如不会出现类似这样的情况：在操作数栈放置了一个int类型的数据，使用时却按long类型来加载入本地变量表中。<br>（2）保证跳转指令不会跳转到方法体以外的字节码指令上。<br>（3）保证方法体中的类型转换是有效的，例如可以把一个子类对象赋值给父类数据类型，但是把父类对象赋值给子类数据类型，甚至把对象赋值给与它毫无继承关系、完全不相干的一个数据类型，则是危险不合法的。<br>……<br>(Halting Problem:通过程序去校验程序逻辑是无法做到绝对准确的——不能通过程序准确的检查出程序是否能在有限时间之内结束运行。）</p>
+<h5 id="4-符号引用验证："><a href="#4-符号引用验证：" class="headerlink" title="4.符号引用验证："></a>4.符号引用验证：</h5><p>符号引用验证可以看作是类对自身以外（常量池中的各种符号引用）的信息进行匹配性校验，通常需要校验以下内容：<br>（1）符号引用中通过字符串描述的全限定名是否能够找到对应的类。<br>（2）在指定类中是否存在符合方法的字段描述符以及简单名称所描述的方法和字段。<br>（3）符号引用中的类、字段、方法的访问性（private、protected、public、default）是否可被当前类访问。</p>
+<h4 id="3-准备："><a href="#3-准备：" class="headerlink" title="3.准备："></a>3.准备：</h4><p>为类变量分配内存以及变量初始化，（static 修饰过的）。实例变量不在该阶段分配内存，在实际使用(New的时候进行在JVM堆中进行分配)。</p>
+<p>public static final int value;<br>特例：在虚拟准备阶段进行ConstantValue进行赋值。</p>
+<h4 id="4-解析："><a href="#4-解析：" class="headerlink" title="4.解析："></a>4.解析：</h4><p>虚拟机将常量池内的符号应用变成直接应用的过程；</p>
+<p>符号引用：是一组符号用来描述所应用的目标，在Class文件中它以CONSTANT_Class_info、CONSTANT_Fieldref_info、CONSTANT_Methodref_info等类型的常量出现。应用的目标不一定加载到内存当中，例如在虚拟机编译时Java文件中应用的其他类的地址时候只能用符号来代替（在org.simpe.People类中引用了org.simple.Test 类，在编译的时候实际上虚拟机很可能不知道Test类的地址，所以在编译的时候会将该类用符号进行代替，在Jvm在解析时再进行转换）各种虚拟机实现的内存布局可能有所不同，但是它们能接受的符号引用都是一致的，因为符号引用的字面量形式明确定义在Java虚拟机规范的Class文件格式中。</p>
+<p>直接应用：</p>
+<p>（1）直接指向目标的指针（比如，指向“类型”【Class对象】、类变量、类方法的直接引用可能是指向方法区的指针）</p>
+<p>（2）相对偏移量（比如，指向实例变量、实例方法的直接引用都是偏移量）</p>
+<p>（3）一个能间接定位到目标的句柄</p>
+<p>直接引用是和虚拟机的布局相关的，同一个符号引用在不同的虚拟机实例上翻译出来的直接引用一般不会相同。如果有了直接引用，那引用的目标必定已经被加载入内存中了。</p>
+<h4 id="5-初始化："><a href="#5-初始化：" class="headerlink" title="5.初始化："></a>5.初始化：</h4><p>类加载的最后一步，开始执行class中定义的Java代码，其中在涉及到静态变量以及静态代码块时有些地方需要注意：</p>
+<p>（1）编译器收集的顺序是由代码编写的顺序决定的，静态代码块中只能访问到定义在在惊呆代码块之前的的变量，而在他之后的变量只能赋值不能访问。</p>
+<p>（2）初始化方法执行的顺序：JVM会保证子类初始化方法执行之前父类的初始化执行方法已经执行完毕，所以父类的静态语句执行顺序会优先于子类静态语句。</p>
+<p>（3）clinit()对于类和方法来说不是必须的，如果类和方法中没有静态语句则不会为这个类生成cilnit 方法。</p>
+<p>(<clinit>方法是由编译器自动收集的，包括所有类变量（静态非final）赋值和静态语句块（static{}）)</p>
+<p>（4）接口中不能使用静态语句块，接口的实现类也不会执行接口的clinit方法。父类接口中使用到定义变量在初始化阶段也子类接口也不会执行父类接口，只有在使用时才会执行。</p>
+<p>（5）虚拟机会保证一个类的clinit()方法在多线程环境中被正确的加锁同步，如果多线程同时去初始化同一个变量则只有一个线程成功同步，其他线程进入阻塞。</p>
+<h3 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h3><p>类加载器负责将二进制的字节文件加载到内存当中并生成一个java.lang.Class对象，一单一个类被加载到内存中这个类就不会被其他加载器加载。一个类在JVM中使用全限定名(包名+类名)作为唯一标识。JVM预定义的有三种类加载器：</p>
+<ul>
+<li>根类加载器(Bootstrap Class Loader)：该加载器用来加载Java的核心类，但并不继承java.lang.ClassLoader（该加载器负责加载java环境变量下/jre/lit/rt.jar中的class,有C++实现，所以不是ClassLoader类）。</li>
+<li>扩展类加载器(Extensions Class Loader)：该加载器负责加载JRE的扩展目录，/lib/ext或者有java.ext.dirs系统属性指定目录下的JRE包。Java实现，父加载器为根类加载器，但是因为BootstrapClassLoader不是使用Java实现的所以无法继承，只能引用。</li>
+<li>系统加载器(System Class Loader)：该加载器也被称为应用加载器，负责加载JVM启动参数-classpath、java.class.path或CLASSPATH所指定目录下的JRE包。父类是ExtClassLoader。也是所有自定义类加载器的父类。</li>
+<li>自定义类加载器：继承ClassLoader类。<ul>
+<li>findClass()方法用来实现双亲委派机制中该层加载器加载类的逻辑，即父类加载器加载失败再调用子类的findClass()；</li>
+<li>createClass()方法直接加载类，因为直接获取对应Class的二进制文件所以不会再向父类加载器提交加载任务；<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyClassLoader</span> <span class="keyword">extends</span> <span class="title class_">ClassLoader</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String mLibPath;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">MyClassLoader</span><span class="params">(String path)</span> &#123;</span><br><span class="line">        mLibPath = path;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 双亲委派逻辑，父加载器读不到Class才会调用此方法</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt; findClass(String name) <span class="keyword">throws</span> ClassNotFoundException&#123;</span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            data = readClassFile( name);</span><br><span class="line">            <span class="keyword">return</span> defineClass(name,data,<span class="number">0</span>,data.length);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">super</span>.findClass(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 绕过双亲委派逻辑，直接获取Class</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> Class&lt;?&gt; createClass(String name) <span class="keyword">throws</span> Exception&#123;</span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        data = readClassFile(name);</span><br><span class="line">        <span class="keyword">return</span> defineClass(name,data,<span class="number">0</span>,data.length);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 读取Class文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">byte</span>[] readClassFile(String name) <span class="keyword">throws</span> Exception&#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">fileName</span> <span class="operator">=</span> getFileName(name);</span><br><span class="line">        <span class="type">File</span> <span class="variable">file</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(mLibPath,fileName);</span><br><span class="line">        <span class="type">FileInputStream</span> <span class="variable">is</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileInputStream</span>(file);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="type">int</span> <span class="variable">len</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> ((len = is.read()) != -<span class="number">1</span>) &#123;</span><br><span class="line">            bos.write(len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">byte</span>[] data = bos.toByteArray();</span><br><span class="line">        is.close();</span><br><span class="line">        bos.close();</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取要加载 的class文件名</span></span><br><span class="line">    <span class="keyword">private</span> String <span class="title function_">getFileName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> name.lastIndexOf(<span class="string">&#x27;.&#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span>(index == -<span class="number">1</span>)&#123; </span><br><span class="line">            <span class="keyword">return</span> name+<span class="string">&quot;.class&quot;</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">return</span> name.substring(index+<span class="number">1</span>)+<span class="string">&quot;.class&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h3 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h3><ul>
+<li>全盘负责：一个加载器加载了某个类则该类的依赖类和引用其他类都由该加载器进行加载，除非这些类中显示使用其他加载器来加载；</li>
+<li>双亲委派：一个类的加载总是先由父加载器进行加载，如果父类无法加载该类则子类加载器再进行加载。假设JVM加载器除了三种预设加载器再加上一个用户自定义的加载器，当JVM需要加载某一个Class时首先自定义加载器收到加载任务，先向上传递让systemClassLoader进行加载，systemClassLoader存在父类的加载器把加载任务继续上传到父类加载器，extClassLoader收到加载器任务查询自己的加载目录下是否存在该类，如果不存在则再让子类进行加载……..<br>(PS：双亲委派机制优点在于使JVM加载器保持层级关系，不会出现重复加载问题，其次就是安全问题，Java核心API定义的类型不会被篡改，当出现自定义java.lang.Integer类是，加载器因为首先使用父类加载器所以不会加载当前自定义的Integer类)。</li>
+<li>缓存：所有被加载过的Class都会被暂存再JVM的缓存，当类加载器要加载某一个Class的时候会先搜索缓存区，再去搜索对应目录。这就是为什么修改了Class必须要重启JVM，否则JVM不会重新加载修改后的类。</li>
+</ul>
+<h2 id="GC"><a href="#GC" class="headerlink" title="GC"></a>GC</h2><p>JVM为维持足够的运行内存，会实时的进行垃圾回收。其中GC会分为两个部分：搜索需要回收的对象，回收对象<br>虚拟机启动时分配并占用大部分内存，线程共享。其中堆内存在分为Eden区，新生代，老年代。<br>Eden区：负责收容新生对象，但是若是创建时需要较大内存则会被直接交给老年代进行分配内存；<br>新生代：新生代内部会创建两个大小相同的Survivor区（from,to），Eden创建对象后经过一次Minor GC后就会被转移到某一个Survivor区，新生代使用复制算法来不断在两个Survivor区不断转移对象，直到被转移至老年代。<br>老年代：老年代会存放两种对象：<br>1、创建时过大的对象会直接被分配到老年代<br>2、新生代经过可控次数（默认15次,因为再每个对象的头部只有4位用来记录该对象年代次数）转移后的对象会被下放到老年代<br><img src="/assets/doc-images/jvm_heap_memory.png" alt="Java堆内存"></p>
+<h3 id="判断回收对象算法"><a href="#判断回收对象算法" class="headerlink" title="判断回收对象算法"></a>判断回收对象算法</h3><h4 id="1、引用计数法："><a href="#1、引用计数法：" class="headerlink" title="1、引用计数法："></a>1、引用计数法：</h4><pre><code>给每个创建出来的对象增加一个引用计数器，有新引用时+1，当引用失效是-1，当GC是如果是引用计数器为0则被回收掉，这个回收机制速度快，判断效率高，但是对于循环引用无法做到判断会产生内存堆积导致内存不足。
+</code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">例子：</span><br><span class="line">    <span class="type">Object</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line">    <span class="type">Object</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line">    a = b;</span><br><span class="line">    b= a;</span><br><span class="line">    a = b = <span class="literal">null</span>;     <span class="comment">//无法GC a,b</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2、可达性分析算法："><a href="#2、可达性分析算法：" class="headerlink" title="2、可达性分析算法："></a>2、可达性分析算法：</h4><p>通过一组GC Root作为起点，从这些起点向下进行搜索，向下搜索的路径称为引用链，对于没有引用链的GC Root对象称为不可用。<br>GC Root判定：<br>1.虚拟机栈（栈帧中本地变量表）引用的对象    –&gt; new 出来的对象<br>2.方法区中静态引用变量                    –&gt; static<br>3.方法区中常量应用变量                    –&gt; 方法或者类中定义的变量<br>4.本地方法栈（Native方法）中JNI引用对象<br>缺点：实现复杂，大量引用链分析会消耗大量的时间，且分析引用是否有效时会stw,所以会增加程序卡顿时间<br><img src="/assets/doc-images/gc.png" alt="在这里插入图片描述"></p>
+<h3 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h3><ul>
+<li>标记清除<br><img src="/assets/doc-images/gc_2.png" alt="标记清除"><ul>
+<li>优点：<br>简单<br>其他都是基于这个算法进行的改性。</li>
+<li>缺点：<br>效率问题，标记的和清除的效率都不高<br>空间问题，标记清除会产生大量的内存碎片，内存碎片可能存在的问题是：当有大对象需要分配时，找不到足够大的连续内存而不得不提前触发另一次垃圾收集动作。</li>
+</ul>
+</li>
+<li>复制算法<br>它将内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块内存用完了，就将还存活的对象复制到另一块上面，然后再把已使用过的空间一次清理掉。<br><img src="/assets/doc-images/gc_3.png" alt="复制算法"></li>
+<li>标记整理<br>标记阶段与 标记-清除算法 一样，但是整理阶段并不是对可回收对象进行清理，而是：让所有存活的对象向一端移动，然后直接清理掉端边界以外的内存。适用于对象存活率比较高的场景。<br><img src="/assets/doc-images/gc_4.png" alt="标记整理算法"><h3 id="GC-垃圾回收器"><a href="#GC-垃圾回收器" class="headerlink" title="GC 垃圾回收器"></a>GC 垃圾回收器</h3>除Epsilon ZGC Shenandoah之外的GC都是使用逻辑分代模型,G1是逻辑分代，物理不分代,  除此之外不仅逻辑分代，而且物理分代<br><img src="/assets/doc-images/gc_5.png" alt="在这里插入图片描述"><br>常见的组合<br>Serial+Serial Old<br>CMS + ParNew<br>Paraller Scavenge+Parallel Old<h4 id="1、Serial收集器"><a href="#1、Serial收集器" class="headerlink" title="1、Serial收集器"></a>1、Serial收集器</h4>单线程收集器，再进行GC时会暂停其他所有工作线程直到手机结束。造成效果就是如果内存较小会频繁GC且在GC的时候会造成程序卡顿。适用于client模式下的JVM，该模式下更注重速度（编译，启动）。在进行GC的时候新生代<br>采用负责算法，年老代使用标记整理算法进行回收。<br>单CPU效率最高</li>
+</ul>
+<h4 id="2、ParNew收集器"><a href="#2、ParNew收集器" class="headerlink" title="2、ParNew收集器"></a>2、ParNew收集器</h4><p>多线程版本的Serial收集器，该收集器在默认启东时会开启CPU核数相同的线程。多线程GC可以提高处理速度速度，缩减程序工作线程卡顿时间</p>
+<h4 id="3、Parallel-Scavenge收集器"><a href="#3、Parallel-Scavenge收集器" class="headerlink" title="3、Parallel Scavenge收集器"></a>3、Parallel Scavenge收集器</h4><p>该收集器是适用于新生代收集器，使用复制算法。与ParNew收集器以减少卡顿时间为目的不同，Parallel Scavenge收集器更注重吞吐量的控制，在启动时可以控制多个收集器性能参数，例如：<br>-XX：MAXGCPauseMills 最大垃圾收集停顿时间<br>-XX：GCTimeRatio 最大吞吐量<br>-Xmn：新生代大小<br>-XX：SuvivorRatio Eden与Ser<br>-XX：PretenureSizeThreshold 晋升老年代对象大小<br>等等</p>
+<h4 id="4、Serial-Old-收集器"><a href="#4、Serial-Old-收集器" class="headerlink" title="4、Serial Old 收集器"></a>4、Serial Old 收集器</h4><p>Serial收集器的老年版本，标记整理算法GC。</p>
+<h4 id="5、Parallel-Old-收集器"><a href="#5、Parallel-Old-收集器" class="headerlink" title="5、Parallel Old 收集器"></a>5、Parallel Old 收集器</h4><p>Parallel Scavenge收集器老年版本，JDK1.6才开始加入，多线程版本标记整理。</p>
+<h4 id="6、CMS-Concurrent-mark-sweep-收集器"><a href="#6、CMS-Concurrent-mark-sweep-收集器" class="headerlink" title="6、CMS(Concurrent mark sweep)收集器"></a>6、CMS(Concurrent mark sweep)收集器</h4><p>目的最大程度缩短收集器执行造成卡顿时间，基于标记清除算法，执行GC步骤：初始标记（标记GC Root可以直接关联的对象）–&gt;并发标记（GC Root Tracing）–&gt;重新标记(修整并发标记期间因为继续操作而露的被回收的对象，查漏补缺)-&gt;并发删除（标记完成统一删除）。<br>（初始标记与重新标记需要Stop All World ，其中重新标记时间比初始标记长，并发标记时间短）<br>缺点：<br>1、并发标记虽然不会占用工作线程时间，但是在并发执行会消耗掉很多内存，所以还是会对系统产生一定的性能影响。<br>2、无法处理浮动垃圾，浮动垃圾产生是因为在并发清除的时候没有暂停工作线程所以在清除的同时还是会产生新垃圾，这部分出现在该次标记之后所以无法处理。<br>3、标记清除算法会导致大量的内存碎片当没有连续的大空间来支持分配的时候会触发提前触发Full FC。<br><img src="/assets/doc-images/gc_6.png" alt="在这里插入图片描述"></p>
+<h4 id="7、G1收集器"><a href="#7、G1收集器" class="headerlink" title="7、G1收集器"></a>7、G1收集器</h4><p>优点：<br>1、并行与并发：充分利用多CPU以及多核环境优势。使用多个CPU来缩短stop-the-word停顿时间，部分收集器原本需要停顿Java线程来执行GC动作G1收集器可以通过并发方式让Java程序继续运行。<br>2、分代收集：管理整个Java堆，采用不同方式去处理创建的新对象和已经存活一段时间熬过多次GC的旧对象。<br>3、空间整合：G1运行不会产生空间碎片。<br>4、可预测的停顿：除了减少停顿时间还会建立可预测停顿时间模型，能让明确一个长度为M毫秒的时间内消耗在垃圾收集上的时间不能超过N毫秒。</p>
+<p>执行GC顺序 初始标记–&gt;并发标记–&gt;最终标记（其他和CMS相似增加合并Remembered Log 到Remembered Set中）–&gt;筛选回收（根据回收价值和成本指定进行排序指定计划并整理内存空间）</p>
+<h4 id="G1-和-CMS-不同点"><a href="#G1-和-CMS-不同点" class="headerlink" title="G1 和 CMS 不同点"></a>G1 和 CMS 不同点</h4><p>1.使用范围：CMS是老年代收集器，会配合Serial或者ParNew收集器一起使用；G1收集器范围老年代和新生代，不需要配合其他收集器使用<br>2.STW时间：CMS以最小停顿时间为目标，所以在初始标记和重复标记阶段stw时间会非常短，但是可能会频繁触发FULL GC； G1可以预测停顿时间建立stw时间模型<br>3.垃圾碎片：CMS使用标记-清除算法所以会产生很多空间碎片；G1使用标记-整理算法，在GC时会不断整理空间，所以触发FULL GC频率低。<br>4.回收过程：</p>
+<h2 id="JVM-1"><a href="#JVM-1" class="headerlink" title="JVM"></a>JVM</h2><h2 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h2><h4 id="对象创建过程？"><a href="#对象创建过程？" class="headerlink" title="对象创建过程？"></a>对象创建过程？</h4><ul>
+<li>class loading 加载类文件到内存中</li>
+<li>class linking（cerification,prepartion,resoluting） 创建类连接</li>
+</ul>
+<ol>
+<li>Verification<ol>
+<li>验证文件是否符合JVM规定</li>
+</ol>
+</li>
+<li>Preparation<ol>
+<li>静态成员变量赋默认值</li>
+</ol>
+</li>
+<li>Resolution<ol>
+<li>将类、方法、属性等符号引用解析为直接引用<br>常量池中的各种符号引用解析为指针、偏移量等内存地址的直接引用</li>
+</ol>
+</li>
+</ol>
+<ul>
+<li>class intializing 调用类初始化代码 <clinit>，给静态成员变量赋初始值</li>
+<li>向堆和栈申请对象内存</li>
+<li>成员变量赋默认值</li>
+<li>调用构造方法<ol>
+<li>成员变量顺序赋初始值</li>
+<li>执行构造方法语句<ol>
+<li>super()</li>
+<li>本类的构造方法<br><img src="/assets/doc-images/gc_7.png" alt="在这里插入图片描述"></li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+<h3 id="对象中存储布局"><a href="#对象中存储布局" class="headerlink" title="对象中存储布局?"></a>对象中存储布局?</h3><h4 id="普通对象"><a href="#普通对象" class="headerlink" title="普通对象"></a>普通对象</h4><ol>
+<li>对象头：markword  8</li>
+<li>ClassPointer指针：-XX:+UseCompressedClassPointers 为4字节 不开启为8字节</li>
+<li>实例数据<ol>
+<li>引用类型：-XX:+UseCompressedOops 为4字节 不开启为8字节<br>Oops Ordinary Object Pointers</li>
+</ol>
+</li>
+<li>Padding对齐，8的倍数</li>
+</ol>
+<h4 id="数组对象"><a href="#数组对象" class="headerlink" title="数组对象"></a>数组对象</h4><ol>
+<li>对象头：markword 8</li>
+<li>ClassPointer指针同上</li>
+<li>数组长度：4字节</li>
+<li>数组数据</li>
+<li>对齐 8的倍数</li>
+</ol>
+<h3 id="对象怎么定位？"><a href="#对象怎么定位？" class="headerlink" title="对象怎么定位？"></a>对象怎么定位？</h3><p>1.句柄池：<br>2.直接引用：</p>
+<h3 id="对象分配"><a href="#对象分配" class="headerlink" title="对象分配"></a>对象分配</h3><p><img src="/assets/doc-images/gc_8.png" alt="在这里插入图片描述"></p>
+<h2 id="JVM调优"><a href="#JVM调优" class="headerlink" title="JVM调优"></a>JVM调优</h2><p>#JDK 命令</p>
+<h3 id="jsp"><a href="#jsp" class="headerlink" title="jsp"></a>jsp</h3><p>查看当前正在运行的java进程<br>也可以用 ps -ef | grep java来代替</p>
+<h3 id="jinfo"><a href="#jinfo" class="headerlink" title="jinfo"></a>jinfo</h3><p>查看pid的JVM的所有信息</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">jinfo -flags &lt;name&gt; &lt;pid&gt;</span><br><span class="line"></span><br><span class="line">jinfo -flags 7</span><br><span class="line">jinfo 7</span><br><span class="line">Attaching to process ID 7, please <span class="built_in">wait</span>...</span><br><span class="line">Debugger attached successfully.</span><br><span class="line">Server compiler detected.</span><br><span class="line">JVM version is 25.131-b11</span><br><span class="line">Java System Properties:</span><br><span class="line"></span><br><span class="line">java.runtime.name = Java(TM) SE Runtime Environment</span><br><span class="line">java.vm.version = 25.131-b11</span><br><span class="line">sun.boot.library.path = /usr/lib/jvm/java-8-oracle/jre/lib/amd64</span><br><span class="line">java.protocol.handler.pkgs = org.springframework.boot.loader</span><br><span class="line">java.vendor.url = http://java.oracle.com/</span><br><span class="line">java.vm.vendor = Oracle Corporation</span><br><span class="line">path.separator = :</span><br><span class="line">file.encoding.pkg = sun.io</span><br><span class="line">java.vm.name = Java HotSpot(TM) 64-Bit Server VM</span><br><span class="line">sun.os.patch.level = unknown</span><br><span class="line">sun.java.launcher = SUN_STANDARD</span><br><span class="line">user.dir = /</span><br><span class="line">java.vm.specification.name = Java Virtual Machine Specification</span><br><span class="line">PID = 7</span><br><span class="line">java.runtime.version = 1.8.0_131-b11</span><br><span class="line">java.awt.graphicsenv = sun.awt.X11GraphicsEnvironment</span><br><span class="line">os.arch = amd64</span><br><span class="line">java.endorsed.dirs = /usr/lib/jvm/java-8-oracle/jre/lib/endorsed</span><br><span class="line">org.jboss.logging.provider = slf4j</span><br><span class="line">line.separator =</span><br><span class="line"></span><br><span class="line">java.io.tmpdir = /tmp</span><br><span class="line">java.vm.specification.vendor = Oracle Corporation</span><br><span class="line">os.name = Linux</span><br><span class="line">LOG_LEVEL_PATTERN = %5p [bootstrap,%X&#123;X-B3-TraceId:-&#125;,%X&#123;X-B3-SpanId:-&#125;,%X&#123;X-Span-Export:-&#125;]</span><br><span class="line">sun.jnu.encoding = UTF-8</span><br><span class="line">java.library.path = /usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib</span><br><span class="line">spring.beaninfo.ignore = <span class="literal">true</span></span><br><span class="line">com.netflix.servo.DefaultMonitorRegistry.registryClass = com.netflix.servo.BasicMonitorRegistry</span><br><span class="line">java.specification.name = Java Platform API Specification</span><br><span class="line">java.class.version = 52.0</span><br><span class="line">sun.management.compiler = HotSpot 64-Bit Tiered Compilers</span><br><span class="line">os.version = 3.10.0-514.21.1.el7.x86_64</span><br><span class="line">user.home = /root</span><br><span class="line">user.timezone = Asia/Shanghai</span><br><span class="line">catalina.useNaming = <span class="literal">false</span></span><br><span class="line">java.awt.printerjob = sun.print.PSPrinterJob</span><br><span class="line">file.encoding = UTF-8</span><br><span class="line">@appId = zby-svc-order</span><br><span class="line">java.specification.version = 1.8</span><br><span class="line">catalina.home = /tmp/tomcat.3003963976752067956.19004</span><br><span class="line">user.name = root</span><br><span class="line">java.class.path = /opt/app.jar</span><br><span class="line">java.vm.specification.version = 1.8</span><br><span class="line">sun.arch.data.model = 64</span><br><span class="line">sun.java.command = /opt/app.jar</span><br><span class="line">java.home = /usr/lib/jvm/java-8-oracle/jre</span><br><span class="line">user.language = en</span><br><span class="line">java.specification.vendor = Oracle Corporation</span><br><span class="line">awt.toolkit = sun.awt.X11.XToolkit</span><br><span class="line">java.vm.info = mixed mode</span><br><span class="line">java.version = 1.8.0_131</span><br><span class="line">java.ext.dirs = /usr/lib/jvm/java-8-oracle/jre/lib/ext:/usr/java/packages/lib/ext</span><br><span class="line">sun.boot.class.path = /usr/lib/jvm/java-8-oracle/jre/lib/resources.jar:/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar:/usr/lib/jvm/java-8-oracle/jre/lib/sunrsasign.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jsse.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jce.jar:/usr/lib/jvm/java-8-oracle/jre/lib/charsets.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jfr.jar:/usr/lib/jvm/java-8-oracle/jre/classes</span><br><span class="line">java.awt.headless = <span class="literal">true</span></span><br><span class="line">java.vendor = Oracle Corporation</span><br><span class="line">catalina.base = /tmp/tomcat.3003963976752067956.19004</span><br><span class="line">file.separator = /</span><br><span class="line">java.security.egd = file:/dev/./urandom</span><br><span class="line">java.vendor.url.bug = http://bugreport.sun.com/bugreport/</span><br><span class="line">sun.io.unicode.encoding = UnicodeLittle</span><br><span class="line">sun.cpu.endian = little</span><br><span class="line">sun.cpu.isalist =</span><br><span class="line"></span><br><span class="line">VM Flags:</span><br><span class="line">Non-default VM flags: -XX:CICompilerCount=4 -XX:InitialHeapSize=536870912 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357564416 -XX:MetaspaceSize=134217728 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=178782208 -XX:OldSize=358088704 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC</span><br><span class="line">Command line:  -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Xms512m -Xmx1024m -XX:MetaspaceSize=128m</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="jmap"><a href="#jmap" class="headerlink" title="jmap"></a>jmap</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">jmap [option] &lt;pid&gt;</span><br><span class="line">        (to connect to running process)</span><br><span class="line">    jmap [option] &lt;executable &lt;core&gt;</span><br><span class="line">        (to connect to a core file)</span><br><span class="line">    jmap [option] [server_id@]&lt;remote server IP or hostname&gt;</span><br><span class="line">        (to connect to remote debug server)</span><br><span class="line"></span><br><span class="line"><span class="built_in">where</span> &lt;option&gt; is one of:</span><br><span class="line">    &lt;none&gt;               <span class="comment">##  打印操作系统内存</span></span><br><span class="line">    -heap                <span class="comment">##  打印java虚拟机堆信息</span></span><br><span class="line">    -histo[:live]        to <span class="built_in">print</span> histogram of java object heap; <span class="keyword">if</span> the <span class="string">&quot;live&quot;</span></span><br><span class="line">                         suboption is specified, only count live objects</span><br><span class="line">    -clstats             to <span class="built_in">print</span> class loader statistics</span><br><span class="line">    -finalizerinfo       to <span class="built_in">print</span> information on objects awaiting finalization</span><br><span class="line">    -dump:&lt;dump-options&gt; to dump java heap <span class="keyword">in</span> hprof binary format</span><br><span class="line">                         dump-options:</span><br><span class="line">                           live         dump only live objects; <span class="keyword">if</span> not specified,</span><br><span class="line">                                        all objects <span class="keyword">in</span> the heap are dumped.</span><br><span class="line">                           format=b     binary format</span><br><span class="line">                           file=&lt;file&gt;  dump heap to &lt;file&gt;</span><br><span class="line">                         Example: jmap -dump:live,format=b,file=heap.bin &lt;pid&gt;</span><br><span class="line">    -F                   force. Use with -dump:&lt;dump-options&gt; &lt;pid&gt; or -histo</span><br><span class="line">                         to force a heap dump or histogram when &lt;pid&gt; does not</span><br><span class="line">                         respond. The <span class="string">&quot;live&quot;</span> suboption is not supported</span><br><span class="line">                         <span class="keyword">in</span> this mode.</span><br><span class="line">    -h | -<span class="built_in">help</span>           to <span class="built_in">print</span> this <span class="built_in">help</span> message</span><br><span class="line">    -J&lt;flag&gt;             to pass &lt;flag&gt; directly to the runtime system</span><br></pre></td></tr></table></figure>
+
+<h4 id="jmap-–heap"><a href="#jmap-–heap" class="headerlink" title="jmap –heap"></a>jmap –heap</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">ttaching to process ID 7, please <span class="built_in">wait</span>...</span><br><span class="line">Debugger attached successfully.</span><br><span class="line">Server compiler detected.</span><br><span class="line">JVM version is 25.131-b11</span><br><span class="line"></span><br><span class="line">using thread-local object allocation.</span><br><span class="line">Parallel GC with 10 thread(s)</span><br><span class="line"></span><br><span class="line">Heap Configuration:</span><br><span class="line">   MinHeapFreeRatio         = 0   <span class="comment">#  指定 jvm heap 在使用率小于 n 的情况下 ,heap 进行收缩 ,Xmx==Xms 的情况下无效 , 如 :-XX:MinHeapFreeRatio=30 </span></span><br><span class="line">   MaxHeapFreeRatio         = 100  <span class="comment"># jvm heap 在使用率大于 n 的情况下 ,heap 进行扩张 ,Xmx==Xms 的情况下无效 , 如 :-XX:MaxHeapFreeRatio=70</span></span><br><span class="line">   MaxHeapSize              = 1073741824 (1024.0MB) <span class="comment">## JVM 堆空间允许的最大值。</span></span><br><span class="line">   NewSize                  = 178782208 (170.5MB) <span class="comment">## JVM 新生代堆空间的默认值。</span></span><br><span class="line">   MaxNewSize               = 357564416 (341.0MB)  <span class="comment">## JVM 新生代堆空间允许的最大值。</span></span><br><span class="line">   OldSize                  = 358088704 (341.5MB)  <span class="comment">## JVM 老年代堆空间的默认值。</span></span><br><span class="line">   NewRatio                 = 2   <span class="comment">##  新生代（2个Survivor区和Eden区 ）与老年代（不包括永久区）的堆空间比值，表示新生代：老年代=1：2</span></span><br><span class="line">   SurvivorRatio            = 8    <span class="comment">## 两个Survivor区和Eden区的堆空间比值为 8，表示 S0 ： S1 ：Eden = 1：1：8。</span></span><br><span class="line">   MetaspaceSize            = 134217728 (128.0MB)   <span class="comment">## JVM 元空间的默认值。</span></span><br><span class="line">   CompressedClassSpaceSize = 1073741824 (1024.0MB)</span><br><span class="line">   MaxMetaspaceSize         = 17592186044415 MB  <span class="comment">## JVM 元空间允许的最大值。</span></span><br><span class="line">   G1HeapRegionSize         = 0 (0.0MB)  <span class="comment">## 在使用 G1 垃圾回收算法时，JVM 会将 Heap 空间分隔为若干个 Region，该参数用来指定每个 Region 空间的大小。</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Heap Usage:</span><br><span class="line">PS Young Generation</span><br><span class="line">Eden Space:                           <span class="comment">## Eden区</span></span><br><span class="line">   capacity = 166723584 (159.0MB)</span><br><span class="line">   used     = 129490176 (123.491455078125MB)</span><br><span class="line">   free     = 37233408 (35.508544921875MB)</span><br><span class="line">   77.66758181014151% used</span><br><span class="line">From Space:                           <span class="comment">##S0区</span></span><br><span class="line">   capacity = 5767168 (5.5MB)</span><br><span class="line">   used     = 3573264 (3.4077301025390625MB)</span><br><span class="line">   free     = 2193904 (2.0922698974609375MB)</span><br><span class="line">   61.95872913707387% used</span><br><span class="line">To Space:                            <span class="comment">##S0区</span></span><br><span class="line">   capacity = 5767168 (5.5MB)</span><br><span class="line">   used     = 0 (0.0MB)</span><br><span class="line">   free     = 5767168 (5.5MB)</span><br><span class="line">   0.0% used</span><br><span class="line">PS Old Generation                        <span class="comment">## 老年代</span></span><br><span class="line">   capacity = 358088704 (341.5MB)</span><br><span class="line">   used     = 216992832 (206.94049072265625MB)</span><br><span class="line">   free     = 141095872 (134.55950927734375MB)</span><br><span class="line">   60.59750826432101% used</span><br></pre></td></tr></table></figure>
+
+<h4 id="jmap-histo"><a href="#jmap-histo" class="headerlink" title="jmap histo"></a>jmap histo</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 打印虚拟机中对象统计，对象数内存大小等信息，如果加live则先会触发GC在进行统计</span></span><br><span class="line">jmap -histo:live 7 | grep order | <span class="built_in">head</span> -n 10</span><br><span class="line">1066:            24            960  com.zby.svc.order.enums.PlatformEnum</span><br><span class="line">1278:            18            576  com.zby.svc.order.enums.OrderStatusEnum</span><br><span class="line">1429:            13            416  com.zby.svc.order.enums.AmazonMarketPlaceEnum</span><br><span class="line">1513:            15            360  com.zby.svc.order.rabbitmq.RabbitmqConfiguration$$EnhancerBySpringCGLIB$$6733408c$$FastClassBySpringCGLIB$<span class="variable">$98f92401</span></span><br><span class="line">1514:            15            360  com.zby.svc.order.rabbitmq.RabbitmqConfiguration$$FastClassBySpringCGLIB$<span class="variable">$2d563b40</span></span><br><span class="line">1661:             1            280  com.zby.svc.order.rabbitmq.consumer.BillOpsLoggingQueueConsumer</span><br><span class="line">1662:             1            280  com.zby.svc.order.rabbitmq.consumer.CommonOpsLoggingQueueConsumer</span><br><span class="line">1663:             1            280  com.zby.svc.order.rabbitmq.consumer.CrossModuleQueueConsumer</span><br><span class="line">1910:             1            184  com.zby.svc.order.service.impl.OrderServiceImpl$$EnhancerBySpringCGLIB$<span class="variable">$98658e15</span></span><br><span class="line">2099:             1            152  com.zby.svc.order.service.impl.AfterSaleServiceImpl$$EnhancerBySpringCGLIB$<span class="variable">$c9da1536</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h4 id="jmap-clstats"><a href="#jmap-clstats" class="headerlink" title="jmap clstats"></a>jmap clstats</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 打印JVM中classLoader信息</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="jmap-finalizerinfo"><a href="#jmap-finalizerinfo" class="headerlink" title="jmap finalizerinfo"></a>jmap finalizerinfo</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 打印等待回收对象信息 实际上在JVM进行GC时都会调用对象的finalizer方法，（对象自救逻辑）</span></span><br><span class="line">jmap -finalizerinfo 7</span><br><span class="line">Attaching to process ID 7, please <span class="built_in">wait</span>...</span><br><span class="line">Debugger attached successfully.</span><br><span class="line">Server compiler detected.</span><br><span class="line">JVM version is 25.131-b11</span><br><span class="line">Number of objects pending <span class="keyword">for</span> finalization: 0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="jmap-dump"><a href="#jmap-dump" class="headerlink" title="jmap dump"></a>jmap dump</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 导出JVM中整个内存的文件信息</span></span><br><span class="line">jmap -dump:live,format=b,file=heap.bin &lt;pid&gt;</span><br><span class="line"></span><br><span class="line">jmap -dump:live,format=utf8,file=heap.txt 7</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="jstat"><a href="#jstat" class="headerlink" title="jstat"></a>jstat</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">jstat -option</span><br><span class="line">invalid argument count</span><br><span class="line">Usage: jstat -<span class="built_in">help</span>|-options</span><br><span class="line">       jstat -&lt;option&gt; [-t] [-h&lt;lines&gt;] &lt;vmid&gt; [&lt;interval&gt; [&lt;count&gt;]]</span><br><span class="line"></span><br><span class="line">Definitions:</span><br><span class="line">  &lt;option&gt;      An option reported by the -options option</span><br><span class="line">  &lt;vmid&gt;        Virtual Machine Identifier. A vmid takes the following form:</span><br><span class="line">                     &lt;lvmid&gt;[@&lt;hostname&gt;[:&lt;port&gt;]]</span><br><span class="line">                Where &lt;lvmid&gt; is the <span class="built_in">local</span> vm identifier <span class="keyword">for</span> the target</span><br><span class="line">                Java virtual machine, typically a process <span class="built_in">id</span>; &lt;hostname&gt; is</span><br><span class="line">                the name of the host running the target Java virtual machine;</span><br><span class="line">                and &lt;port&gt; is the port number <span class="keyword">for</span> the rmiregistry on the</span><br><span class="line">                target host. See the jvmstat documentation <span class="keyword">for</span> a more complete</span><br><span class="line">                description of the Virtual Machine Identifier.</span><br><span class="line">  &lt;lines&gt;       Number of samples between header lines.</span><br><span class="line">  &lt;interval&gt;    Sampling interval. The following forms are allowed:</span><br><span class="line">                    &lt;n&gt;[<span class="string">&quot;ms&quot;</span>|<span class="string">&quot;s&quot;</span>]</span><br><span class="line">                Where &lt;n&gt; is an <span class="built_in">integer</span> and the suffix specifies the units as</span><br><span class="line">                milliseconds(<span class="string">&quot;ms&quot;</span>) or seconds(<span class="string">&quot;s&quot;</span>). The default units are <span class="string">&quot;ms&quot;</span>.</span><br><span class="line">  &lt;count&gt;       Number of samples to take before terminating.</span><br><span class="line">  -J&lt;flag&gt;      Pass &lt;flag&gt; directly to the runtime system.</span><br><span class="line"></span><br><span class="line">  jstat -options</span><br><span class="line">-class</span><br><span class="line">-compiler</span><br><span class="line">-gc</span><br><span class="line">-gccapacity</span><br><span class="line">-gccause</span><br><span class="line">-gcmetacapacity</span><br><span class="line">-gcnew</span><br><span class="line">-gcnewcapacity</span><br><span class="line">-gcold</span><br><span class="line">-gcoldcapacity</span><br><span class="line">-gcutil</span><br><span class="line">-printcompilation</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="jstat-class"><a href="#jstat-class" class="headerlink" title="jstat -class"></a>jstat -class</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 显示JVM中加载的class数量以及所占用空间等等</span></span><br><span class="line">jstat -class 7</span><br><span class="line">Loaded  Bytes  Unloaded  Bytes     Time</span><br><span class="line"> 22687 41946.1     1079  1390.2      15.15</span><br><span class="line"></span><br><span class="line"><span class="comment">## Loaded   装载类的数量</span></span><br><span class="line"><span class="comment">## Bytes    装载类所占用的字节数</span></span><br><span class="line"><span class="comment">## Unloaded 卸载类的数量</span></span><br><span class="line"><span class="comment">## Bytes    卸载类所占用的字节数</span></span><br><span class="line"><span class="comment">## Time     装载和卸载类所占用的时间</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="jstat-compiler"><a href="#jstat-compiler" class="headerlink" title="jstat -compiler"></a>jstat -compiler</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 显示JVM实时编译的数量信息</span></span><br><span class="line">jstat -compiler &lt;pid&gt;</span><br><span class="line">Compiled Failed Invalid   Time   FailedType FailedMethod</span><br><span class="line">   20983      5       0   127.73          1 org/springframework/boot/loader/jar/JarFileEntries getEntry</span><br><span class="line"></span><br><span class="line"><span class="comment">## Compiled      编译任务执行数量</span></span><br><span class="line"><span class="comment">## Failed        编译任务执行失败数量</span></span><br><span class="line"><span class="comment">## Invalid       编译任务执行失效数量</span></span><br><span class="line"><span class="comment">## Time          编译任务消耗时间</span></span><br><span class="line"><span class="comment">## FailedType    最后一个编译失败任务的类型</span></span><br><span class="line"><span class="comment">## FailedMethod  最后一个编译失败任务所在的类及方法</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="jstat-gc"><a href="#jstat-gc" class="headerlink" title="jstat -gc"></a>jstat -gc</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">jstat -gc &lt;pid&gt;</span><br><span class="line"> S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT</span><br><span class="line">2048.0 12800.0 1816.4  0.0   259584.0 185892.9  349696.0   276122.6  129024.0 123352.6 14592.0 13690.9    110    1.235   0      0.000    1.235</span><br><span class="line"></span><br><span class="line"><span class="comment">##  S0C   	年轻代中第一个survivor（幸存区）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  S1C   	年轻代中第二个survivor（幸存区）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  S0U   	年轻代中第一个survivor（幸存区）目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  S1U     	年轻代中第二个survivor（幸存区）目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  EC      	年轻代中Eden（伊甸园）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  EU       	年轻代中Eden（伊甸园）目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  OC        	Old代的容量 (字节)</span></span><br><span class="line"><span class="comment">##  OU      	Old代目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  PC    	Perm(持久代)的容量 (字节)</span></span><br><span class="line"><span class="comment">##  PU	Perm(持久代)目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  YGC    	从应用程序启动到采样时年轻代中gc次数</span></span><br><span class="line"><span class="comment">##  YGCT   	从应用程序启动到采样时年轻代中gc所用时间(s)</span></span><br><span class="line"><span class="comment">##  FGC   	从应用程序启动到采样时old代(全gc)gc次数</span></span><br><span class="line"><span class="comment">##  FGCT    	从应用程序启动到采样时old代(全gc)gc所用时间(s)</span></span><br><span class="line"><span class="comment">##  GCT	从应用程序启动到采样时gc用的总时间(s)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="jstat-gccapacity"><a href="#jstat-gccapacity" class="headerlink" title="jstat -gccapacity"></a>jstat -gccapacity</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">jstat -gccapacity &lt;pid&gt;</span><br><span class="line"> NGCMN    NGCMX     NGC     S0C   S1C       EC      OGCMN      OGCMX       OGC         OC       MCMN     MCMX      MC     CCSMN    CCSMX     CCSC    YGC    FGC</span><br><span class="line">174592.0 349184.0 303616.0 2048.0 12800.0 259584.0   349696.0   699392.0   349696.0   349696.0      0.0 1163264.0 129024.0      0.0 1048576.0  14592.0    110     0</span><br><span class="line"><span class="comment">##  NGCMN   	年轻代(young)中初始化(最小)的大小(字节)</span></span><br><span class="line"><span class="comment">##  NGCMX    	年轻代(young)的最大容量 (字节)</span></span><br><span class="line"><span class="comment">##  NGC    	年轻代(young)中当前的容量 (字节)</span></span><br><span class="line"><span class="comment">##  S0C  	年轻代中第一个survivor（幸存区）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  S1C      	年轻代中第二个survivor（幸存区）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  EC     	年轻代中Eden（伊甸园）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  OGCMN     	old代中初始化(最小)的大小 (字节)</span></span><br><span class="line"><span class="comment">##  OGCMX      	old代的最大容量(字节)</span></span><br><span class="line"><span class="comment">##  OGC	old代当前新生成的容量 (字节)</span></span><br><span class="line"><span class="comment">##  OC     	Old代的容量 (字节)</span></span><br><span class="line"><span class="comment">##  PGCMN   	perm代中初始化(最小)的大小 (字节)</span></span><br><span class="line"><span class="comment">##  PGCMX    	perm代的最大容量 (字节)  </span></span><br><span class="line"><span class="comment">##  PGC      	perm代当前新生成的容量 (字节)</span></span><br><span class="line"><span class="comment">##  PC    	Perm(持久代)的容量 (字节)</span></span><br><span class="line"><span class="comment">##  YGC   	从应用程序启动到采样时年轻代中gc次数</span></span><br><span class="line"><span class="comment">##  FGC	从应用程序启动到采样时old代(全gc)gc次数</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="jstat-gcutil"><a href="#jstat-gcutil" class="headerlink" title="jstat -gcutil"></a>jstat -gcutil</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">jstat -gcutil &lt;pid&gt;</span><br><span class="line"><span class="comment">##  S0    	年轻代中第一个survivor（幸存区）已使用的占当前容量百分比</span></span><br><span class="line"><span class="comment">##  S1    	年轻代中第二个survivor（幸存区）已使用的占当前容量百分比</span></span><br><span class="line"><span class="comment">##  E     	年轻代中Eden（伊甸园）已使用的占当前容量百分比</span></span><br><span class="line"><span class="comment">##  O     	old代已使用的占当前容量百分比</span></span><br><span class="line"><span class="comment">##  P    	perm代已使用的占当前容量百分比</span></span><br><span class="line"><span class="comment">##  YGC    	从应用程序启动到采样时年轻代中gc次数</span></span><br><span class="line"><span class="comment">##  YGCT   	从应用程序启动到采样时年轻代中gc所用时间(s)</span></span><br><span class="line"><span class="comment">##  FGC   	从应用程序启动到采样时old代(全gc)gc次数</span></span><br><span class="line"><span class="comment">##  FGCT    	从应用程序启动到采样时old代(全gc)gc所用时间(s)</span></span><br><span class="line"><span class="comment">##  GCT	从应用程序启动到采样时gc用的总时间(s)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="jstat-gcnew-gcold"><a href="#jstat-gcnew-gcold" class="headerlink" title="jstat -gcnew/-gcold"></a>jstat -gcnew/-gcold</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">jstat -gcnew/ -gcold  &lt;pid&gt;</span><br><span class="line"><span class="comment">##  S0C   	年轻代中第一个survivor（幸存区）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  S1C   	年轻代中第二个survivor（幸存区）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  S0U   	年轻代中第一个survivor（幸存区）目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  S1U  	年轻代中第二个survivor（幸存区）目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  TT	持有次数限制</span></span><br><span class="line"><span class="comment">##  MTT 	最大持有次数限制</span></span><br><span class="line"><span class="comment">##  EC      	年轻代中Eden（伊甸园）的容量 (字节)</span></span><br><span class="line"><span class="comment">##  EU    	年轻代中Eden（伊甸园）目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  YGC    	从应用程序启动到采样时年轻代中gc次数</span></span><br><span class="line"><span class="comment">##  YGCT	从应用程序启动到采样时年轻代中gc所用时间(s)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##  PC      	Perm(持久代)的容量 (字节)</span></span><br><span class="line"><span class="comment">##  PU       	Perm(持久代)目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  OC         	Old代的容量 (字节)</span></span><br><span class="line"><span class="comment">##  OU      	Old代目前已使用空间 (字节)</span></span><br><span class="line"><span class="comment">##  YGC   	从应用程序启动到采样时年轻代中gc所用时间次数</span></span><br><span class="line"><span class="comment">##  FGC   	从应用程序启动到采样时old代(全gc)gc次数</span></span><br><span class="line"><span class="comment">##  FGCT    	从应用程序启动到采样时old代(全gc)gc所用时间(s)</span></span><br><span class="line"><span class="comment">##  GCT	从应用程序启动到采样时gc用的总时间(s)</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="JVM检测工具"><a href="#JVM检测工具" class="headerlink" title="JVM检测工具"></a>JVM检测工具</h2><p>Arthas 阿里开源工具：</p>
+<h3 id="下载安装"><a href="#下载安装" class="headerlink" title="下载安装"></a>下载安装</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1.  curl -O https://arthas.aliyun.com/arthas-boot.jar</span><br><span class="line"></span><br><span class="line">2.  sudo dpkg -i arthas*.deb</span><br><span class="line"></span><br><span class="line">3. sudo rpm -i arthas*.rpm</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.  java -jar arthas-boot.jar</span><br><span class="line"></span><br><span class="line">2/3.  as.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>启动后先选择要监控调试的Java进程再进入到对应页面</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[INFO] arthas-boot version: 3.4.6</span><br><span class="line">[INFO] Found existing java process, please choose one and input the serial number of the process, eg : 1. Then hit ENTER.</span><br><span class="line">* [1]: 1 /opt/app.jar  <span class="comment">## 会检测当前应用运行环境中所有Java进程，根据进程前的Index选择要监控的Java的进程</span></span><br></pre></td></tr></table></figure>
+
+<p>进入界面</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[INFO] arthas home: /root/.arthas/lib/3.4.6/arthas</span><br><span class="line">[INFO] Try to attach process 1</span><br><span class="line">[INFO] Attach process 1 success.</span><br><span class="line">[INFO] arthas-client connect 127.0.0.1 3658</span><br><span class="line">  ,---.  ,------. ,--------.,--.  ,--.  ,---.   ,---.                           </span><br><span class="line"> /  O  \ |  .--. <span class="string">&#x27;&#x27;</span>--.  .--<span class="string">&#x27;|  &#x27;</span>--<span class="string">&#x27;  | /  O  \ &#x27;</span>   .-<span class="string">&#x27;                          </span></span><br><span class="line"><span class="string">|  .-.  ||  &#x27;</span>--<span class="string">&#x27;.&#x27;</span>   |  |   |  .--.  ||  .-.  |`.  `-.                          </span><br><span class="line">|  | |  ||  |\  \    |  |   |  |  |  ||  | |  |.-<span class="string">&#x27;    |                         </span></span><br><span class="line"><span class="string">`--&#x27;</span> `--<span class="string">&#x27;`--&#x27;</span> <span class="string">&#x27;--&#x27;</span>   `--<span class="string">&#x27;   `--&#x27;</span>  `--<span class="string">&#x27;`--&#x27;</span> `--<span class="string">&#x27;`-----&#x27;</span>                          </span><br><span class="line">                                                                                </span><br><span class="line"></span><br><span class="line">wiki      https://arthas.aliyun.com/doc                                         </span><br><span class="line">tutorials https://arthas.aliyun.com/doc/arthas-tutorials.html                   </span><br><span class="line">version   3.4.6                                                                 </span><br><span class="line">pid       1                                                                     </span><br><span class="line">time      2021-01-26 15:11:19      </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>dushboard–仪表盘</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>NAME</th>
+<th>GROUP</th>
+<th>PRIORITY</th>
+<th>STATE</th>
+<th>%CPU</th>
+<th>DELTA_TIME</th>
+<th>TIME</th>
+<th>INTERRUPTED</th>
+<th>DAMON</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>线程ID（Java级别的线程ID没有ID及状态等信息）</td>
+<td>线程名称（JVM内部线程：JIT编译线程(C1 CompilerThread0,C2 CompilerThread0),GC线程（GC Thread0,G2 Young RemSet Sampling）,其他内部线程（VMPeriodic Task Thread,VM Thread,Service Thread））</td>
+<td>线程组名</td>
+<td>优先级（1~10之间的数字，越大表示优先级越高）</td>
+<td>线程状态（RUNNABLE:运行中，TIMED_WAITING:超时等待，WAITING:等待，BLOCKED:阻塞等待锁）</td>
+<td>线程消耗的cpu占比，采样100ms，将所有线程在这100ms内的cpu使用量求和，再算出每个线程的cpu使用占比。</td>
+<td></td>
+<td>线程运行总时间</td>
+<td>线程当前中断状态</td>
+<td>是否是daemon线程</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td>used</td>
+<td>total</td>
+<td>max</td>
+<td>usage</td>
+<td>GC</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>JVM内存信息</td>
+<td>已使用内存</td>
+<td>总计</td>
+<td>最大</td>
+<td>使用比</td>
+<td>垃圾回收方法</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>os.name</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Linux</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>os.version</td>
+<td></td>
+<td></td>
+<td></td>
+<td>3.10.0-514.21.1.el7.x86_64</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>java.version</td>
+<td></td>
+<td></td>
+<td></td>
+<td>1.8.0_202</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>java.home</td>
+<td></td>
+<td></td>
+<td></td>
+<td>/usr/lib/jvm/java-8-oracle/jre</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>systemload.average</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0.21</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>processors</td>
+<td></td>
+<td></td>
+<td></td>
+<td>12</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>timestamp/uptime</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Tue Jan 26 15:19:22 CST 2021/13474s</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<ul>
+<li>thread–线程信息<br>打印具体线程的信息<br>-id  查看指定id线程没有ID及状态等信息（显示ID为-1）<br>-n [num] 查看当前最忙的几个线程<br>-b   找出当前阻塞其他线程的线程，如果有死锁，会有红色的字提醒着，这个阻塞的  线程已经被另外一个线程阻塞。<br>-all  显示所有匹配的线程<br>-i [num]    查看[num]ms线程CPU时间<br>-state  查看指定状态的线程    如查看WAITING状态   thread -state WAITING</li>
+</ul>
+<ul>
+<li><p>jad–反编译<br>通过指定全限定类名来反编译正在运行的类内容 jad [com.Main]</p>
+</li>
+<li><p>watch–监听器</p>
+</li>
+</ul>
+<h2 id="JVM排查问题"><a href="#JVM排查问题" class="headerlink" title="JVM排查问题"></a>JVM排查问题</h2><h3 id="CPU飙高"><a href="#CPU飙高" class="headerlink" title="CPU飙高"></a>CPU飙高</h3><ul>
+<li>1.top 查看CPU占用率最高的进程/或者jps查看java的进程</li>
+<li>2.top -Hp  查看对应进程内各个线程的CPU/内存的占比</li>
+<li>3.jstack 定位线程情况，查看该线程下所有线程状态，检查状态查看是否由哪个抢占排他资源。重点关注WAITING，BLOCKED状态<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// jstack 同样也会记录每个线程池的详细信息：名称，状态等等</span></span><br><span class="line"> waiting on &lt;<span class="number">0x0000000088ca3310</span>&gt; (a java.lang.Object)</span><br><span class="line"></span><br><span class="line"> <span class="comment">// 定位该线程造成死锁自锁，</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="OOM"><a href="#OOM" class="headerlink" title="OOM"></a>OOM</h3><ul>
+<li>1.jinfo 查看该进程虚拟机详情</li>
+<li>2.jstat -gc 动态观察gc情况 / 阅读GC日志发现频繁GC / arthas观察 / jconsole/jvisualVM/ Jprofiler（最好用）<br>jstat -gc 4655 500 : 每个500个毫秒打印GC的情况</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">Java基础</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2023/05/24/JVM/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Dubbo源码阅读" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2023/05/24/Dubbo%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">Dubbo源码阅读</a>
+    </h1>
+  
+
+        
+        <a href="/2023/05/24/Dubbo%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" class="archive-article-date">
+  	<time datetime="2023-05-24T08:58:49.943Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Dubbo"><a href="#Dubbo" class="headerlink" title="Dubbo"></a>Dubbo</h1><h2 id="结构介绍"><a href="#结构介绍" class="headerlink" title="结构介绍"></a>结构介绍</h2><p><img src="/assets/doc-images/dubbo_structs.png" alt="在这里插入图片描述"></p>
+<p><img src="/assets/doc-images/dubbo_structs_2.png" alt="Dubbo层级划分"></p>
 <ul>
 <li>服务接口层（Service）:与实际业务逻辑相关，根据消费者和生产者业务设计对应接口和实现；</li>
 <li>配置层（Config）:对外配置接口，负责Dubbo中生成各种配置类，例如协议，生产者以及具体的Bean信息的等等，方便再暴露和做负载均衡时直接使用 <a target="_blank" rel="noopener" href="https://blog.csdn.net/zhaodongchao1992/article/details/103452829">源码</a><br><img src="/assets/doc-images/code_extends.png" alt="在这里插入图片描述"></li>
@@ -680,6 +1294,17 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">Dubbo</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -1011,7 +1636,7 @@
 <p>右旋<br>右旋图解(x右边节点顺时针旋转)：<br>a<br>/ \<br>x   b      -&gt;      x<br>/ \                / \<br>d   c              d   a<br>/ <br>c   b</p>
 <h3 id="聚簇索引"><a href="#聚簇索引" class="headerlink" title="聚簇索引"></a>聚簇索引</h3><p>聚簇索引：将数据存储与索引放到了一块，找到索引也就找到了数据,不仅保存主键值还保存该行数据还保存事务ID，以及事务版本信息等等。<br>非聚簇索引：将数据存储于索引分开结构，索引结构的叶子节点指向了数据的对应行.</p>
 <h3 id="B-树和B-树"><a href="#B-树和B-树" class="headerlink" title="B-树和B+树"></a>B-树和B+树</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013411246/article/details/81088914">https://blog.csdn.net/u013411246/article/details/81088914</a><br>b+树相比于b树的查询优势：<br>b+树的中间节点不保存数据，所以磁盘页能容纳更多节点元素，更“矮胖”；<br>b+树查询必须查找到叶子节点，b树只要匹配到即可不用管元素位置，因此b+树查找更稳定（并不慢）；<br>对于范围查找来说，b+树只需遍历叶子节点链表即可，b树却需要重复地中序遍历，如下两图：</p>
-<p>###死锁<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/tr1912/article/details/81668423">死锁案例</a> </p>
+<h3 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/tr1912/article/details/81668423">死锁案例</a> </p>
 
       
 
@@ -1892,260 +2517,6 @@
 
 
   
-    <article id="post-Mybatis源码阅读(一)调用流程" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80)%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/">Mybatis源码阅读(一)调用流程</a>
-    </h1>
-  
-
-        
-        <a href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80)%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/" class="archive-article-date">
-  	<time datetime="2023-05-24T08:41:09.151Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Mybatis-初始化"><a href="#Mybatis-初始化" class="headerlink" title="Mybatis 初始化"></a>Mybatis 初始化</h1><p><img src="/assets/doc-images/mybatis%E5%88%9D%E5%A7%8B%E5%8C%96.jpg" alt="mybatis调用流程-mybatis初始化"></p>
-<h1 id="Mybatis-调用"><a href="#Mybatis-调用" class="headerlink" title="Mybatis 调用"></a>Mybatis 调用</h1><p><img src="/assets/doc-images/mybatis%E8%B0%83%E7%94%A8.jpg" alt="mybatis调用流程"></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Mybatis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80)%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mybatis源码阅读(三)Spring整合" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%89)Spring%E6%95%B4%E5%90%88/">Mybatis源码阅读(三)Spring整合</a>
-    </h1>
-  
-
-        
-        <a href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%89)Spring%E6%95%B4%E5%90%88/" class="archive-article-date">
-  	<time datetime="2023-05-24T08:41:09.151Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="SpringMybatis-整合"><a href="#SpringMybatis-整合" class="headerlink" title="SpringMybatis 整合"></a>SpringMybatis 整合</h1><h3 id="一、Mybatis：最简单测试Demo"><a href="#一、Mybatis：最简单测试Demo" class="headerlink" title="一、Mybatis：最简单测试Demo"></a>一、Mybatis：最简单测试Demo</h3><p>  相信只要用过Mybatis的同学看到下面的代码一定不会陌生，如果不清楚的可以看下<a href="https://link.juejin.cn/?target=https://mybatis.org/mybatis-3/zh/getting-started.html">官网文档</a></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">resource</span> <span class="operator">=</span> <span class="string">&quot;mybatis-config.xml&quot;</span>;</span><br><span class="line"><span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> Resources.getResourceAsStream(resource);</span><br><span class="line"><span class="type">SqlSessionFactory</span> <span class="variable">sqlSessionFactory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SqlSessionFactoryBuilder</span>().build(inputStream);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1、目前流行方式</span></span><br><span class="line"><span class="keyword">try</span> (<span class="type">SqlSession</span> <span class="variable">session</span> <span class="operator">=</span> sqlSessionFactory.openSession()) &#123;</span><br><span class="line">    <span class="type">UserMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> session.getMapper(UserMapper.class);</span><br><span class="line">    <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> mapper.selectById(<span class="number">101</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 2、以前流行方式</span></span><br><span class="line"><span class="keyword">try</span> (<span class="type">SqlSession</span> <span class="variable">session</span> <span class="operator">=</span> sqlSessionFactory.openSession()) &#123;</span><br><span class="line">    <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span>  sqlSession.selectOne(<span class="string">&quot;xxx.UserMapper.selectById&quot;</span>, <span class="string">&quot;101&quot;</span>);;</span><br><span class="line">&#125;    </span><br></pre></td></tr></table></figure>
-
-<p>  示列代码演示了Mybatis进行一次数据库操作的过程，大致分为（针对目前流行方式，其实以前的使用和目前流行的使用方式实现原理一样）：</p>
-<ul>
-<li>1、 通过 <strong>SqlSessionFactoryBuilder</strong> 将读取到的配置资源 build 生成 SqlSessionFactory</li>
-<li>2、 通过 <strong>SqlSessionFactory</strong> 的 openSession() 获取到 SqlSession</li>
-<li>3、 通过 <strong>SqlSession</strong> 获取到 Mapper的代理对象(<strong>MapperProxy</strong>)</li>
-<li>4、 通过 Mapper 进行 数据库请求操作</li>
-</ul>
-<p><strong>SqlSession、SqlSessionFactory、SqlSessionFactoryBuilder</strong></p>
-<p>  我们可以轻易的发现每次去请求数据库操作都需要通过 <strong>SqlSessionFactory</strong> 去获取到 <strong>SqlSession</strong>，而 SqlSessionFactory 是通过 <strong>SqlSessionFactoryBuilder</strong> 构造出来的， 并且最后请求操作完成后都关闭了SqlSession。因此，不难得出：</p>
-<ul>
-<li><strong>SqlSessionFactory</strong> 一个应用程序中最好只有1个，即单列。</li>
-<li><strong>SqlSessionFactoryBuilder</strong> 只有一个作用： 创建 SqlSessionFactory对象。</li>
-<li><strong>一个SqlSession应该仅存活于一个业务请求中，也可以说一个SqlSession对应一次数据库会话，它不是永久存活的，每次访问数据库时都需要创建它，并且访问完成后都必须执行会话关闭</strong></li>
-</ul>
-<p>  针对这3个类以及mapper的作用域（Scope）和生命周期的描述，个人觉得官方文档写得很清楚：</p>
-<blockquote>
-<p><strong>SqlSessionFactoryBuilder</strong></p>
-<p>这个类可以被实例化、使用和丢弃，一旦创建了 SqlSessionFactory，就不再需要它了。 因此 SqlSessionFactoryBuilder 实例的最佳作用域是方法作用域（也就是局部方法变量）。 你可以重用 SqlSessionFactoryBuilder 来创建多个 SqlSessionFactory 实例，但是最好还是不要让其一直存在，以保证所有的 XML 解析资源可以被释放给更重要的事情。</p>
-<p><strong>SqlSessionFactory</strong></p>
-<p>SqlSessionFactory 一旦被创建就应该在应用的运行期间一直存在，没有任何理由丢弃它或重新创建另一个实例。 使用 SqlSessionFactory 的最佳实践是在应用运行期间不要重复创建多次，多次重建 SqlSessionFactory 被视为一种代码“坏味道（bad smell）”。因此 SqlSessionFactory 的最佳作用域是应用作用域。 有很多方法可以做到，最简单的就是使用单例模式或者静态单例模式。</p>
-<p><strong>SqlSession</strong></p>
-<p>每个线程都应该有它自己的 SqlSession 实例。SqlSession 的实例不是线程安全的，因此是不能被共享的，所以它的最佳的作用域是请求或方法作用域。 绝对不能将 SqlSession 实例的引用放在一个类的静态域，甚至一个类的实例变量也不行。 也绝不能将 SqlSession 实例的引用放在任何类型的托管作用域中，比如 Servlet 框架中的 HttpSession。 如果你现在正在使用一种 Web 框架，要考虑 SqlSession 放在一个和 HTTP 请求对象相似的作用域中。 换句话说，每次收到的 HTTP 请求，就可以打开一个 SqlSession，返回一个响应，就关闭它。 这个关闭操作是很重要的，你应该把这个关闭操作放到 finally 块中以确保每次都能执行关闭。 依赖注入框架可以创建线程安全的、基于事务的 SqlSession 和映射器，并将它们直接注入到你的 bean 中，因此可以直接忽略它们的生命周期。 如果对如何通过依赖注入框架来使用 MyBatis 感兴趣，可以研究一下 MyBatis-Spring 或 MyBatis-Guice 两个子项目。</p>
-</blockquote>
-<blockquote>
-<p><strong>映射器实例（Mapper实例）</strong> 映射器是一些由你创建的、绑定你映射的语句的接口。映射器接口的实例是从 SqlSession 中获得的。因此从技术层面讲，任何映射器实例的最大作用域是和请求它们的 SqlSession 相同的。尽管如此，映射器实例的最佳作用域是方法作用域。 也就是说，映射器实例应该在调用它们的方法中被请求，用过之后即可丢弃。 并不需要显式地关闭映射器实例，尽管在整个请求作用域保持映射器实例也不会有什么问题，但是你很快会发现，像 SqlSession 一样，在这个作用域上管理太多的资源的话会难于控制。 为了避免这种复杂性，最好把映射器放在方法作用域内。就像示列代码一样。 如果SqlSession是注入的，那么映射器实例也可通过依赖注入，并且可忽略其生命周期。</p>
-</blockquote>
-<h3 id="二、Mybatis-Spring：将MyBatis代码无缝地整合到Spring"><a href="#二、Mybatis-Spring：将MyBatis代码无缝地整合到Spring" class="headerlink" title="二、Mybatis-Spring：将MyBatis代码无缝地整合到Spring"></a>二、Mybatis-Spring：将MyBatis代码无缝地整合到Spring</h3><p>  前面是学习mybatis常看到的一种代码，但缺点也很明显: 每次请求都得创建SqlSession，并且Mapper的代理类是通过SqlSession获取（说明耦合度很高），也就意味着每次请求都得创建一个新的Mapper代理类。为了整合Spring，并且解决前面问题，所以<a href="https://link.juejin.cn/?target=http://mybatis.org/spring/zh/getting-started.html">Mybatis-Spring</a> 子项目来袭。</p>
-<blockquote>
-<p>MyBatis-Spring 会帮助你将 MyBatis 代码无缝地整合到 Spring 中。<strong>它将允许 MyBatis 参与到 Spring 的事务管理之中，创建映射器 mapper 和 SqlSession 并注入到 bean中</strong>。</p>
-</blockquote>
-<p>  上面是 Mybatis-Spring的官方介绍，其中 <strong>允许 MyBatis 参与到 Spring 的事务管理之中，创建映射器 mapper 和 SqlSession 并注入到 bean中</strong> 是我们本次解析的关键点。那么开始分析吧！</p>
-<p><strong>SqlSessionFactoryBean 、 MapperScannerConfigurer</strong></p>
-<p>  在Spring项目中应用了Mybatis都会有下面的2个bean配置，这2个配置就是实现xml加载、mapper和SqlSession注入的起始配置。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">    &lt;bean id=&quot;sqlSessionFactory&quot; class=&quot;org.mybatis.spring.SqlSessionFactoryBean&quot;&gt;</span><br><span class="line">        &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;</span><br><span class="line">        &lt;property name=&quot;mapperLocations&quot; value=&quot;classpath:mapper/*.xml&quot;&gt;&lt;/property&gt;</span><br><span class="line">        &lt;property name=&quot;configLocation&quot; value=&quot;classpath:mybatis-config.xml&quot;/&gt;</span><br><span class="line">    &lt;/bean&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- DAO接口所在包名，Spring会自动查找其下的类 --&gt;</span><br><span class="line">    &lt;bean class=&quot;org.mybatis.spring.mapper.MapperScannerConfigurer&quot;&gt;</span><br><span class="line">        &lt;property name=&quot;basePackage&quot; value=&quot;xxx.dao&quot;/&gt;</span><br><span class="line">        &lt;property name=&quot;sqlSessionFactoryBeanName&quot; value=&quot;sqlSessionFactory&quot;&gt;&lt;/property&gt;</span><br><span class="line">    &lt;/bean&gt;</span><br><span class="line"></span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
-
-<h4 id="一、-SqlSessionFactoryBean-：-加载xml及build-SqlSessionFactory对象"><a href="#一、-SqlSessionFactoryBean-：-加载xml及build-SqlSessionFactory对象" class="headerlink" title="一、 SqlSessionFactoryBean ： 加载xml及build SqlSessionFactory对象"></a>一、 SqlSessionFactoryBean ： 加载xml及build SqlSessionFactory对象</h4><p>  从配置中我们可以看的 SqlSessionFactoryBean 配置了数据源、mapper的xml路径、mybatis-config的xml路径。因此，不难想象，SqlSessionFactoryBean 内部实现了xml配置文件的加载及SqlSessionFactory对象的创建。我们来看下 SqlSessionFactoryBean继承关系图形：</p>
-<p><img src="/assets/doc-images/16e35dcbd5ba34f9~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="SqlSessionFactoryBean继承关系图形"></p>
-<p>在继承关系图中，我们发现了 <strong>InitializingBean、FactoryBean</strong> 的身影，可能清楚这个的同学，大概已经猜到了肯定有 afterPropertiesSet() 来创建 SqlSessionFactory 对象   和 getObject() 来获取 SqlSessionFactory 对象 。 话不多说，先看下getObject()实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> SqlSessionFactory <span class="title function_">getObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">this</span>.sqlSessionFactory == <span class="literal">null</span>) &#123;</span><br><span class="line">    afterPropertiesSet();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">this</span>.sqlSessionFactory;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>  getObject()相对简单，我们都知道FactoryBean子类都是通过getObject()来获取到实际的Bean对象，这里也就是SqlSessionFactory。从源码中我们看到当 sqlSessionFactory为null会去调用 afterPropertiesSet()，所以 SqlSessionFactory 肯定是由 afterPropertiesSet() 来实现创建的。继续看afterPropertiesSet()实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  notNull(dataSource, <span class="string">&quot;Property &#x27;dataSource&#x27; is required&quot;</span>);</span><br><span class="line">  notNull(sqlSessionFactoryBuilder, <span class="string">&quot;Property &#x27;sqlSessionFactoryBuilder&#x27; is required&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.sqlSessionFactory = buildSqlSessionFactory();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>  afterPropertiesSet() 内部首先 验证了 dataSource 和 sqlSessionFactoryBuilder 部位null，最后调用 buildSqlSessionFactory()方法获取到 SqlSessionFactory 对象，并赋值到类字段属性 sqlSessionFactory 。 继续查看buildSqlSessionFactory()源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> SqlSessionFactory <span class="title function_">buildSqlSessionFactory</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略了 SqlSessionFactoryBean 的属性（比如：ObjectFactory ）赋值到 Configuration 对象中的操作</span></span><br><span class="line">    <span class="comment">//  1 Configuration : Mybatis的核心类之一，主要存放读取到的xml数据,包括mapper.xml </span></span><br><span class="line">    Configuration configuration;</span><br><span class="line"></span><br><span class="line">    <span class="type">XMLConfigBuilder</span> <span class="variable">xmlConfigBuilder</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.configLocation != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">//  2 创建  xmlConfigBuilder 对象 : 用于解析 mybatis-config.xml 数据</span></span><br><span class="line">      xmlConfigBuilder = <span class="keyword">new</span> <span class="title class_">XMLConfigBuilder</span>(<span class="built_in">this</span>.configLocation.getInputStream(), <span class="literal">null</span>, <span class="built_in">this</span>.configurationProperties);</span><br><span class="line">      configuration = xmlConfigBuilder.getConfiguration();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">        logger.debug(<span class="string">&quot;Property &#x27;configLocation&#x27; not specified, using default MyBatis Configuration&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      configuration = <span class="keyword">new</span> <span class="title class_">Configuration</span>();</span><br><span class="line">      configuration.setVariables(<span class="built_in">this</span>.configurationProperties);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (xmlConfigBuilder != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//  3  XmlConfigBuilder 解析方法执行 </span></span><br><span class="line">        xmlConfigBuilder.parse();</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NestedIOException</span>(<span class="string">&quot;Failed to parse config resource: &quot;</span> + <span class="built_in">this</span>.configLocation, ex);</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        ErrorContext.instance().reset();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!isEmpty(<span class="built_in">this</span>.mapperLocations)) &#123;</span><br><span class="line">      <span class="keyword">for</span> (Resource mapperLocation : <span class="built_in">this</span>.mapperLocations) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mapperLocation == <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="comment">//  4 创建  XMLMapperBuilder 对象 : 用于解析 mapper.xml 数据</span></span><br><span class="line">          <span class="type">XMLMapperBuilder</span> <span class="variable">xmlMapperBuilder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">XMLMapperBuilder</span>(mapperLocation.getInputStream(),</span><br><span class="line">              configuration, mapperLocation.toString(), configuration.getSqlFragments());</span><br><span class="line">          xmlMapperBuilder.parse();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NestedIOException</span>(<span class="string">&quot;Failed to parse mapping resource: &#x27;&quot;</span> + mapperLocation + <span class="string">&quot;&#x27;&quot;</span>, e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          ErrorContext.instance().reset();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="comment">// 5 通过 SqlSessionFactoryBuilder bulid  SqlSessionFactory 对象</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.sqlSessionFactoryBuilder.build(configuration);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<p>   整个 buildSqlSessionFactory() 源码主要有以下几个重要的点：</p>
-<ul>
-<li>1、 <strong>XMLConfigBuilder</strong> ，通过调用其 parse() 方法来 解析 mybatis-config.xml 配置（如果 配置有 mapper.xml ，其会通过 XMLMapperBuilder 进行解析加载），并将解析的数据赋值到 <strong>Configuration</strong>（Mybatis的核心类之一，主要存放读取到的xml数据,包括mapper.xml，该类贯穿整个mybatis，足以见得其重要性）</li>
-<li>2、 <strong>XMLMapperBuilder</strong> : 通过调用其 parse() 方法来 解析 mapper.xml 配置， 并将解析的数据赋值到 <strong>Configuration</strong></li>
-<li>3、 将存放有解析数据的 <strong>Configuration</strong> 作为 <strong>sqlSessionFactoryBuilder</strong>.build() 参数，创建 <strong>sqlSessionFactory</strong> 对象。</li>
-</ul>
-<p>至此</p>
-<h4 id="二、-MapperScannerConfigurer-：扫描Mapper接口路径，将-Mapper-偷梁换柱成-MapperFactoryBean"><a href="#二、-MapperScannerConfigurer-：扫描Mapper接口路径，将-Mapper-偷梁换柱成-MapperFactoryBean" class="headerlink" title="二、 MapperScannerConfigurer ：扫描Mapper接口路径，将 Mapper 偷梁换柱成 MapperFactoryBean"></a>二、 MapperScannerConfigurer ：扫描Mapper接口路径，将 Mapper 偷梁换柱成 MapperFactoryBean</h4><p>  MapperScannerConfigurer 是 mybatis-spring 项目中为了实现方便加载Mapper接口，以及将 Mapper 偷梁换柱成 <strong>MapperFactoryBean</strong>。查看 MapperScannerConfigurer 源码，先看下其继承关系图：</p>
-<p><img src="/assets/doc-images/16e35dcbf5afb65a~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="MapperScannerConfigurer继承关系图形"></p>
-<p>   从中我们其继承了 BeanDefinitionRegistryPostProcessor 接口，熟悉Spring 的同学应该 已经大致想到了 其如何将 Mapper 偷梁换柱成 <strong>MapperFactoryBean</strong> 了。话不多说，我们来看看 MapperScannerConfigurer 是如何实现 BeanDefinitionRegistryPostProcessor 的 postProcessBeanDefinitionRegistry 方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postProcessBeanDefinitionRegistry</span><span class="params">(BeanDefinitionRegistry registry)</span> <span class="keyword">throws</span> BeansException &#123;</span><br><span class="line">   <span class="keyword">if</span> (<span class="built_in">this</span>.processPropertyPlaceHolders) &#123;</span><br><span class="line">     processPropertyPlaceHolders();</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="type">ClassPathMapperScanner</span> <span class="variable">scanner</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassPathMapperScanner</span>(registry);</span><br><span class="line">   scanner.setAddToConfig(<span class="built_in">this</span>.addToConfig);</span><br><span class="line">   scanner.setAnnotationClass(<span class="built_in">this</span>.annotationClass);</span><br><span class="line">   scanner.setMarkerInterface(<span class="built_in">this</span>.markerInterface);</span><br><span class="line">   scanner.setSqlSessionFactory(<span class="built_in">this</span>.sqlSessionFactory);</span><br><span class="line">   scanner.setSqlSessionTemplate(<span class="built_in">this</span>.sqlSessionTemplate);</span><br><span class="line">   scanner.setSqlSessionFactoryBeanName(<span class="built_in">this</span>.sqlSessionFactoryBeanName);</span><br><span class="line">   scanner.setSqlSessionTemplateBeanName(<span class="built_in">this</span>.sqlSessionTemplateBeanName);</span><br><span class="line">   scanner.setResourceLoader(<span class="built_in">this</span>.applicationContext);</span><br><span class="line">   scanner.setBeanNameGenerator(<span class="built_in">this</span>.nameGenerator);</span><br><span class="line">   scanner.registerFilters();</span><br><span class="line">   scanner.scan(StringUtils.tokenizeToStringArray(<span class="built_in">this</span>.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-
-<p>   我们可以发现整个方法内部其实就是通过 <strong>ClassPathMapperScanner</strong> 的 scan() 方法，查看 scan() 实现，发现其内部调用了关键方法  doScan(),那么我们来看下 doScan() 方法实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> Set&lt;BeanDefinitionHolder&gt; <span class="title function_">doScan</span><span class="params">(String... basePackages)</span> &#123;</span><br><span class="line">  <span class="comment">// 1、调用父类 ClassPathBeanDefinitionScanner的 doScan方法 加载路径下所有的mapper接口生成对应的 BeanDefinition </span></span><br><span class="line">  Set&lt;BeanDefinitionHolder&gt; beanDefinitions = <span class="built_in">super</span>.doScan(basePackages);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (beanDefinitions.isEmpty()) &#123;</span><br><span class="line">    logger.warn(<span class="string">&quot;No MyBatis mapper was found in &#x27;&quot;</span> + Arrays.toString(basePackages) + <span class="string">&quot;&#x27; package. Please check your configuration.&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (BeanDefinitionHolder holder : beanDefinitions) &#123;</span><br><span class="line">      <span class="type">GenericBeanDefinition</span> <span class="variable">definition</span> <span class="operator">=</span> (GenericBeanDefinition) holder.getBeanDefinition();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 2、 设置 被代理的 Bean（也就是Mapper） 的class信息</span></span><br><span class="line">      definition.getPropertyValues().add(<span class="string">&quot;mapperInterface&quot;</span>, definition.getBeanClassName());</span><br><span class="line">      <span class="comment">// 3、 偷梁换柱成 MapperFactoryBean </span></span><br><span class="line">      definition.setBeanClass(MapperFactoryBean.class);</span><br><span class="line"></span><br><span class="line">      definition.getPropertyValues().add(<span class="string">&quot;addToConfig&quot;</span>, <span class="built_in">this</span>.addToConfig);</span><br><span class="line"></span><br><span class="line">      <span class="type">boolean</span> <span class="variable">explicitFactoryUsed</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">      <span class="comment">// 4、 设置 sqlSessionFactory </span></span><br><span class="line">      <span class="keyword">if</span> (StringUtils.hasText(<span class="built_in">this</span>.sqlSessionFactoryBeanName)) &#123;</span><br><span class="line">        definition.getPropertyValues().add(<span class="string">&quot;sqlSessionFactory&quot;</span>, <span class="keyword">new</span> <span class="title class_">RuntimeBeanReference</span>(<span class="built_in">this</span>.sqlSessionFactoryBeanName));</span><br><span class="line">        explicitFactoryUsed = <span class="literal">true</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">this</span>.sqlSessionFactory != <span class="literal">null</span>) &#123;</span><br><span class="line">        definition.getPropertyValues().add(<span class="string">&quot;sqlSessionFactory&quot;</span>, <span class="built_in">this</span>.sqlSessionFactory);</span><br><span class="line">        explicitFactoryUsed = <span class="literal">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 5、 设置 sqlSessionTemplate</span></span><br><span class="line">      <span class="keyword">if</span> (StringUtils.hasText(<span class="built_in">this</span>.sqlSessionTemplateBeanName)) &#123;</span><br><span class="line">        definition.getPropertyValues().add(<span class="string">&quot;sqlSessionTemplate&quot;</span>, <span class="keyword">new</span> <span class="title class_">RuntimeBeanReference</span>(<span class="built_in">this</span>.sqlSessionTemplateBeanName));</span><br><span class="line">        explicitFactoryUsed = <span class="literal">true</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">this</span>.sqlSessionTemplate != <span class="literal">null</span>) &#123;</span><br><span class="line">        definition.getPropertyValues().add(<span class="string">&quot;sqlSessionTemplate&quot;</span>, <span class="built_in">this</span>.sqlSessionTemplate);</span><br><span class="line">        explicitFactoryUsed = <span class="literal">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">if</span> (!explicitFactoryUsed) &#123;</span><br><span class="line">        definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> beanDefinitions;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>    整个方法分为3个部分：</p>
-<ul>
-<li>1、 调用父类 ClassPathBeanDefinitionScanner的 doScan()方法 加载路径下所有的mapper接口生成对应的 BeanDefinition</li>
-<li>2、 通过definition.setBeanClass(MapperFactoryBean.class) 偷梁换柱成 MapperFactoryBean</li>
-<li>3、 通过 definition.getPropertyValues().add() 添加 MapperFactoryBean 所需的 字段或者方法参数信息 ： sqlSessionFactory 、 mapperInterface等</li>
-</ul>
-<p>   至此 MapperScannerConfigurer 的使命已经完成， 至于  MapperFactoryBean 的创建就完全交给Spring来完成了。</p>
-<h4 id="三、-MapperFactoryBean-、SqlSessionTemplate：Mapper与SqlSession解耦的利器"><a href="#三、-MapperFactoryBean-、SqlSessionTemplate：Mapper与SqlSession解耦的利器" class="headerlink" title="三、 MapperFactoryBean 、SqlSessionTemplate：Mapper与SqlSession解耦的利器"></a>三、 MapperFactoryBean 、SqlSessionTemplate：Mapper与SqlSession解耦的利器</h4><p>   我们知道在mybatis中，Mapper是通过 SqlSession创建的，而SqlSession的生命周期仅仅在一次会话中，那么按照这种设计，每一次会话都要去创建SqlSession，然后再通过SqlSession去创建Mapper。我们知道Mapper其实没有必要每次都去创建，它更加适合作为一个单列对象。那么怎么将SqlSession和Mapper解耦呢？ 在mybatis-spring项目中通过 MapperFactoryBean 、SqlSessionTemplate 来实现的。接下来我们就来解析它们。</p>
-<p><strong>MapperFactoryBean</strong></p>
-<p>    正如前面我们所看到的一样，MapperFactoryBean 其实可以理解为 Mapper的代理工厂Bean，我们可以通过 MapperFactoryBean 的方法获取到 Mapper的代理对象。先来看下 MapperFactoryBean继承关系 ：</p>
-<p><img src="/assets/doc-images/16e35dcc19d3966c~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="MapperFactoryBean继承关系图"></p>
-<p>   我们可以看到 MapperFactoryBean 实现了 FactoryBean， 那么 肯定通过 实现 getObject() 获取到 Mapper的代理对象，查看源码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> T <span class="title function_">getObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  <span class="keyword">return</span> getSqlSession().getMapper(<span class="built_in">this</span>.mapperInterface);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>    其内部就是我们熟悉的 getSqlSession().getMapper() 创建Mapper代理对象的方法。熟悉Spring 的同学都知道 在Bean加载的过程中如果发现当前Bean对象是 FactoryBean 会去 调用getObject() 获取真正的Bean对象。不熟悉的同学可以去看下 AbstractBeanFactory 的 getBean() 方法。</p>
-<p>    但是似乎还是没有吧SqlSession和Mapper解耦的迹象呢？不着急，我们继续看下  getSqlSession(), 发现其是 父类 SqlSessionDaoSupport 实现，我们看下SqlSessionDaoSupport源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">SqlSessionDaoSupport</span> <span class="keyword">extends</span> <span class="title class_">DaoSupport</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> SqlSession sqlSession;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="type">boolean</span> externalSqlSession;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//  创建 SqlSession子类 SqlSessionTemplate </span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setSqlSessionFactory</span><span class="params">(SqlSessionFactory sqlSessionFactory)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">this</span>.externalSqlSession) &#123;</span><br><span class="line">      <span class="built_in">this</span>.sqlSession = <span class="keyword">new</span> <span class="title class_">SqlSessionTemplate</span>(sqlSessionFactory);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setSqlSessionTemplate</span><span class="params">(SqlSessionTemplate sqlSessionTemplate)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.sqlSession = sqlSessionTemplate;</span><br><span class="line">    <span class="built_in">this</span>.externalSqlSession = <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">public</span> SqlSession <span class="title function_">getSqlSession</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.sqlSession;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ....</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>   我们发现我们获取到的SqlSession其实是其子类<strong>SqlSessionTemplate</strong>, 我们查看其构造方法源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">SqlSessionTemplate</span><span class="params">(SqlSessionFactory sqlSessionFactory, ExecutorType executorType,</span></span><br><span class="line"><span class="params">    PersistenceExceptionTranslator exceptionTranslator)</span> &#123;</span><br><span class="line"></span><br><span class="line">  notNull(sqlSessionFactory, <span class="string">&quot;Property &#x27;sqlSessionFactory&#x27; is required&quot;</span>);</span><br><span class="line">  notNull(executorType, <span class="string">&quot;Property &#x27;executorType&#x27; is required&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.sqlSessionFactory = sqlSessionFactory;</span><br><span class="line">  <span class="built_in">this</span>.executorType = executorType;</span><br><span class="line">  <span class="built_in">this</span>.exceptionTranslator = exceptionTranslator;</span><br><span class="line">  <span class="comment">// 维护了一个 SqlSession的代理对象</span></span><br><span class="line">  <span class="built_in">this</span>.sqlSessionProxy = (SqlSession) newProxyInstance(</span><br><span class="line">      SqlSessionFactory.class.getClassLoader(),</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">Class</span>[] &#123; SqlSession.class &#125;,</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">SqlSessionInterceptor</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>   我们可以清楚的发现，其内部维护了一个 SqlSession的字段 sqlSessionProxy ，其赋值的是代理对象 SqlSessionInterceptor。 我们再来看下 SqlSessionInterceptor 的源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">class</span> <span class="title class_">SqlSessionInterceptor</span> <span class="keyword">implements</span> <span class="title class_">InvocationHandler</span> &#123;</span><br><span class="line">   <span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">     <span class="comment">// 通过getSqlSession() 获取一个 SqlSession</span></span><br><span class="line">     <span class="type">SqlSession</span> <span class="variable">sqlSession</span> <span class="operator">=</span> getSqlSession(</span><br><span class="line">         SqlSessionTemplate.<span class="built_in">this</span>.sqlSessionFactory,</span><br><span class="line">         SqlSessionTemplate.<span class="built_in">this</span>.executorType,</span><br><span class="line">         SqlSessionTemplate.<span class="built_in">this</span>.exceptionTranslator);</span><br><span class="line">     <span class="keyword">try</span> &#123;</span><br><span class="line">       <span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> method.invoke(sqlSession, args);</span><br><span class="line">       <span class="keyword">if</span> (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.<span class="built_in">this</span>.sqlSessionFactory)) &#123;</span><br><span class="line">         <span class="comment">// force commit even on non-dirty sessions because some databases require</span></span><br><span class="line">         <span class="comment">// a commit/rollback before calling close()</span></span><br><span class="line">         sqlSession.commit(<span class="literal">true</span>);</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">return</span> result;</span><br><span class="line">     &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">       <span class="type">Throwable</span> <span class="variable">unwrapped</span> <span class="operator">=</span> unwrapThrowable(t);</span><br><span class="line">       <span class="keyword">if</span> (SqlSessionTemplate.<span class="built_in">this</span>.exceptionTranslator != <span class="literal">null</span> &amp;&amp; unwrapped <span class="keyword">instanceof</span> PersistenceException) &#123;</span><br><span class="line">         <span class="comment">// release the connection to avoid a deadlock if the translator is no loaded. See issue #22</span></span><br><span class="line">         closeSqlSession(sqlSession, SqlSessionTemplate.<span class="built_in">this</span>.sqlSessionFactory);</span><br><span class="line">         sqlSession = <span class="literal">null</span>;</span><br><span class="line">         <span class="type">Throwable</span> <span class="variable">translated</span> <span class="operator">=</span> SqlSessionTemplate.<span class="built_in">this</span>.exceptionTranslator.translateExceptionIfPossible((PersistenceException) unwrapped);</span><br><span class="line">         <span class="keyword">if</span> (translated != <span class="literal">null</span>) &#123;</span><br><span class="line">           unwrapped = translated;</span><br><span class="line">         &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">throw</span> unwrapped;</span><br><span class="line">     &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">       <span class="keyword">if</span> (sqlSession != <span class="literal">null</span>) &#123;</span><br><span class="line">         closeSqlSession(sqlSession, SqlSessionTemplate.<span class="built_in">this</span>.sqlSessionFactory);</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-
-<p>  我们发现其代理实现时，通过getSqlSession() 获取一个 全新的SqlSession。也就是说创建Mapper的SqlSession和会话请求的SqlSession不是同一个。这里就完美的解耦了Mapper和SqlSession，并且保障了每次会话SqlSession的生命周期范围。</p>
-<p>  这里超前提下： getSqlSession().getMapper() 其实 是通过 configuration.getMapper() 来获取的，那么就意味着 configuration内部必须添加了Mapper信息，那么configuration是何时添加的呢？ 可以看下 MapperFactoryBean的checkDaoConfig()方法，源码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">checkDaoConfig</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="built_in">super</span>.checkDaoConfig();</span><br><span class="line"></span><br><span class="line">  notNull(<span class="built_in">this</span>.mapperInterface, <span class="string">&quot;Property &#x27;mapperInterface&#x27; is required&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="type">Configuration</span> <span class="variable">configuration</span> <span class="operator">=</span> getSqlSession().getConfiguration();</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">this</span>.addToConfig &amp;&amp; !configuration.hasMapper(<span class="built_in">this</span>.mapperInterface)) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      configuration.addMapper(<span class="built_in">this</span>.mapperInterface);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">      logger.error(<span class="string">&quot;Error while adding the mapper &#x27;&quot;</span> + <span class="built_in">this</span>.mapperInterface + <span class="string">&quot;&#x27; to configuration.&quot;</span>, t);</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(t);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      ErrorContext.instance().reset();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
-
-<p>  由于父类实现了 InitializingBean 接口，并且其afterPropertiesSet() 调用了 checkDaoConfig() 方法 ，所以，至少在初始化创建MapperFactoryBean 时，就已经向 configuration内部必须添加了Mapper信息。</p>
-<h3 id="三、个人总结"><a href="#三、个人总结" class="headerlink" title="三、个人总结"></a>三、个人总结</h3><p>  本文解析了Mybatis与Spring是如何整合的，其中的关键对象包括：</p>
-<ul>
-<li><strong>SqlSessionFactoryBuilder</strong>: 用于创建 SqlSessionFactory</li>
-<li><strong>SqlSessionFactory</strong>： 用于创建 SqlSession</li>
-<li><strong>SqlSession</strong>： Mybatis工作的最顶层API会话接口，所有访问数据库的操作都是通过SqlSession来的</li>
-<li><strong>Configuration</strong>： 存放有所有的mybatis配置信息，包括mapper.xml、 mybatis-config.xml等</li>
-<li><strong>XMLConfigBuilder</strong>： 解析 mybatis-config.xml 配置并存放到Configuration中</li>
-<li><strong>XMLMapperBuilder</strong>： 解析 mapper.xml 配置并存放到Configuration中</li>
-<li><strong>SqlSessionFactoryBean</strong>： mybatis整合Spring时的 生成 SqlSessionFactory  的FactoryBean</li>
-<li><strong>MapperScannerConfigurer</strong>：  mybatis整合Spring时的 实现方便加载Mapper接口，以及将 Mapper 偷梁换柱成 <strong>MapperFactoryBean</strong></li>
-<li><strong>MapperFactoryBean</strong>： 生成 Mapper 代理对象的FactoryBean</li>
-<li><strong>SqlSessionTemplate</strong>： 内部维护有 SqlSession 的代理对象，解耦Mapper和SqlSession的关键对象。</li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Mybatis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2023/05/24/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%89)Spring%E6%95%B4%E5%90%88/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
@@ -2227,7 +2598,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+                <a href="javascript:void(0)" class="js-tag color1">Dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -2239,15 +2614,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">测试</a>
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">MQ</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Tool</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
             
             <div class="clearfix"></div>
