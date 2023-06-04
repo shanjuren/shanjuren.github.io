@@ -164,7 +164,25 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="编程范式定义"><a href="#编程范式定义" class="headerlink" title="编程范式定义"></a>编程范式定义</h1><p>对于不同编程语言都存在一系列公认的概念、原则和规定，这一系列的变成约束就是编程范式。每种变成语言可能存在多种编程范式，例如Java的编程范式包含 命令式、声明式、面向对象式和函数式编程。</p>
+        <h1 id="编程的本质"><a href="#编程的本质" class="headerlink" title="编程的本质"></a>编程的本质</h1><ul>
+<li>Programs = Algorithms + Data Structures</li>
+<li>Algorithm = Logic + Control</li>
+</ul>
+<p>其中任何算法都有两部分组成逻辑(Logic)、控制(Control)。Logic部分是解决问题的算法，Control部分是影响这个问题的解决效率，所以Logic和Control部分并没有强依赖关系，如果将Logic和Control部分有效的分离则代码会更容易拓展和维护。</p>
+<p>由以上公式可以推导出：Programs = Logic + Control + Data Structures<br>所以所有的编程范式或程序设计都是以这三部分为中心衍生而出。<br>例如：函数式编程中的Map/Filter/Reduce都属于控制，而传给这些控制模块的Lambda表达式就属于Logic其中包含了算法的核心处理逻辑。最后将数据放到对应所需的数据结构中即构成程序。</p>
+<p>综上所述，编程中主要关注的事情总共概括为三点：</p>
+<ul>
+<li>Control标准化，例如遍历数据、同步、异步、并发…；</li>
+<li>Data Structures 标准化，即所有的数据接口可以通过泛型编程来实现标准化；</li>
+<li>Logic 标准化，通过接口不同的实现来进行不同业务逻辑的处理，所以Control通过标准化接口/协议来控制程序；</li>
+</ul>
+<p>所以在编程中Logic和Control逻辑的分离很大程度上缓解代码复杂度问题，而如何做到逻辑分离了？</p>
+<ul>
+<li>状态机：状态定义、状态变迁、状态后置行为</li>
+<li>定义DSL：通过定义领域特定语言来处理不同领域的逻辑和控制；</li>
+<li>编程范式：面向对象(委托、策略、桥接、修饰、IOC…)、函数式编程(修饰、管道、拼接)、逻辑推导式编程(Prolog)</li>
+</ul>
+<h1 id="编程范式定义"><a href="#编程范式定义" class="headerlink" title="编程范式定义"></a>编程范式定义</h1><p>对于不同编程语言都存在一系列公认的概念、原则和规定，这一系列的变成约束就是编程范式。每种变成语言可能存在多种编程范式，例如Java的编程范式包含 命令式、声明式、面向对象式和函数式编程。</p>
 <h1 id="编程范式"><a href="#编程范式" class="headerlink" title="编程范式"></a>编程范式</h1><h2 id="命令式编程"><a href="#命令式编程" class="headerlink" title="命令式编程"></a>命令式编程</h2><h3 id="范式描述"><a href="#范式描述" class="headerlink" title="范式描述"></a>范式描述</h3><p>使用流程化的语句和过程直接控制程序的运行和数据状态。</p>
 <h3 id="范式特点"><a href="#范式特点" class="headerlink" title="范式特点"></a>范式特点</h3><ul>
 <li>直接赋值</li>
@@ -183,6 +201,16 @@
 </ul>
 <h2 id="声明式编程"><a href="#声明式编程" class="headerlink" title="声明式编程"></a>声明式编程</h2><h3 id="范式描述-2"><a href="#范式描述-2" class="headerlink" title="范式描述"></a>范式描述</h3><p>定义程序计算逻辑而不是具体控制流程，相比于命令式变成，声明式更抽象，关注更多的”程序应该做什么”而不是”程序该怎么做”。纯粹的声明式编程语言包括(SQL、CSS和正则表达式)。</p>
 <h3 id="范式特点-2"><a href="#范式特点-2" class="headerlink" title="范式特点"></a>范式特点</h3><h2 id="函数式编程"><a href="#函数式编程" class="headerlink" title="函数式编程"></a>函数式编程</h2><h3 id="范式描述-3"><a href="#范式描述-3" class="headerlink" title="范式描述"></a>范式描述</h3><p>函数式编程是声明式编程的子范式，通过数学函数(输出只由输入参数决定，不会由程序的状态影响)表达式的方式来避免状态和状态的改变。</p>
+<h4 id="特征"><a href="#特征" class="headerlink" title="特征"></a>特征</h4><p>StateLess：函数不维护任何状态，所以无状态的函数可以支持并发、异步等多种场景下的逻辑计算；<br>Immutable：输入数据不可变，如果发生变更会导致返回新的数据集；</p>
+<h4 id="依赖技术"><a href="#依赖技术" class="headerlink" title="依赖技术"></a>依赖技术</h4><ul>
+<li>First Class Function(头等函数)：函数是可以被像变量一样使用，例如创建、传递、修改、嵌套…</li>
+<li>Tail Recursion Optimization(尾递归优化)：为了递归导致的堆栈溢出，每次递归调用的时候会公用Stack;</li>
+<li>Map &amp; Reduce：</li>
+<li>Pipeline：将一组组Action放到List中，Action间相互传递结果；</li>
+<li>Recursing：递归简化重复代码；</li>
+<li>Currying(柯里化)：将函数中的参数拆分成多个函数，再将多个函数封装起来每层都返回一个函数去接受下一个参数，简化参数；</li>
+<li>Higher Order Function(高阶函数)：将函数当做参数进行传入，在函数内对于参数进行封装返回这个函数的封装类；</li>
+</ul>
 <h3 id="范式特点-3"><a href="#范式特点-3" class="headerlink" title="范式特点"></a>范式特点</h3><ul>
 <li>代码公式化</li>
 <li>Lambda 表达式</li>
@@ -1675,137 +1703,6 @@
 
 
   
-    <article id="post-Mybatis源码阅读(五)Mapper代理类生成" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2023/05/29/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%BA%94)Mapper%E4%BB%A3%E7%90%86%E7%B1%BB%E7%94%9F%E6%88%90/">Mybatis源码阅读(五)Mapper代理类生成</a>
-    </h1>
-  
-
-        
-        <a href="/2023/05/29/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%BA%94)Mapper%E4%BB%A3%E7%90%86%E7%B1%BB%E7%94%9F%E6%88%90/" class="archive-article-date">
-  	<time datetime="2023-05-29T02:03:48.083Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-29</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Mapper代理生成"><a href="#Mapper代理生成" class="headerlink" title="Mapper代理生成"></a>Mapper代理生成</h1><h3 id="一、加载-Mapper接口"><a href="#一、加载-Mapper接口" class="headerlink" title="一、加载 Mapper接口"></a>一、加载 Mapper接口</h3><p>针对Mybatis项目，Mapper的配置加载是从XmlConfigBuilder.mapperElement()方法中触发的。我们来看下源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">mapperElement</span><span class="params">(XNode parent)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  <span class="keyword">if</span> (parent != <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (XNode child : parent.getChildren()) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="string">&quot;package&quot;</span>.equals(child.getName())) &#123;</span><br><span class="line">        <span class="comment">// 通过  package 形式加载 ,内部其实也是获取到 package 路径下的所有class再通过  class 形式加载</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">mapperPackage</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">        configuration.addMappers(mapperPackage);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">resource</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;resource&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;url&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">mapperClass</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;class&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (resource != <span class="literal">null</span> &amp;&amp; url == <span class="literal">null</span> &amp;&amp; mapperClass == <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 加载 Mapper.xml 的</span></span><br><span class="line">          ErrorContext.instance().resource(resource);</span><br><span class="line">          <span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> Resources.getResourceAsStream(resource);</span><br><span class="line">          <span class="type">XMLMapperBuilder</span> <span class="variable">mapperParser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">XMLMapperBuilder</span>(inputStream, configuration, resource, configuration.getSqlFragments());</span><br><span class="line">          mapperParser.parse();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (resource == <span class="literal">null</span> &amp;&amp; url != <span class="literal">null</span> &amp;&amp; mapperClass == <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 加载 Mapper.xml 的</span></span><br><span class="line">          ErrorContext.instance().resource(url);</span><br><span class="line">          <span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> Resources.getUrlAsStream(url);</span><br><span class="line">          <span class="type">XMLMapperBuilder</span> <span class="variable">mapperParser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">XMLMapperBuilder</span>(inputStream, configuration, url, configuration.getSqlFragments());</span><br><span class="line">          mapperParser.parse();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (resource == <span class="literal">null</span> &amp;&amp; url == <span class="literal">null</span> &amp;&amp; mapperClass != <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 通过  class 形式加载</span></span><br><span class="line">          Class&lt;?&gt; mapperInterface = Resources.classForName(mapperClass);</span><br><span class="line">          configuration.addMapper(mapperInterface);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BuilderException</span>(<span class="string">&quot;A mapper element may only specify a url, resource or class, but not more than one.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从上面源码看，加载Mapper接口有2种形式： 一种是根据设置的 package 找到路径下面所有的class并通过configuration.addMapper() 加载。 另一种是根据指定设置的Mapper接口路径直接通过 configuration.addMapper()加载class。所以加载Mapper接口最终都是 <strong>configuration.addMapper()</strong> 来加载的。</p>
-<p>而针对Mybatis-Spring项目则是 获取 MapperScannerConfigurer 的 basePackage 参数，并通过 ClassPathMapperScanner 扫描到 设置的 basePackage  路径下的所有class ，并得到 BeanDefinition ，后面的情况在第一篇文章已经讲过，最终是得到了 <strong>MapperFactoryBean</strong> ，并且还到了  MapperFactoryBean 内部的 checkDaoConfig() 方法加载Mapper接口的内容，那么我们再次回顾下这个方法的源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">checkDaoConfig</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="built_in">super</span>.checkDaoConfig();</span><br><span class="line"></span><br><span class="line">  notNull(<span class="built_in">this</span>.mapperInterface, <span class="string">&quot;Property &#x27;mapperInterface&#x27; is required&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="type">Configuration</span> <span class="variable">configuration</span> <span class="operator">=</span> getSqlSession().getConfiguration();</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">this</span>.addToConfig &amp;&amp; !configuration.hasMapper(<span class="built_in">this</span>.mapperInterface)) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 最终都是通过 addMapper() 方法加载的。</span></span><br><span class="line">      configuration.addMapper(<span class="built_in">this</span>.mapperInterface);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">      logger.error(<span class="string">&quot;Error while adding the mapper &#x27;&quot;</span> + <span class="built_in">this</span>.mapperInterface + <span class="string">&quot;&#x27; to configuration.&quot;</span>, t);</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(t);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      ErrorContext.instance().reset();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从源码中我们发现 内部其实还是通过 <strong>configuration.addMapper()</strong> 加载的。可能有些同学会问，checkDaoConfig()什么时候被调用的，这个可以追溯到 MapperFactoryBean 的继承关系图，可以发现实现了 InitializingBean接口， 而 checkDaoConfig（） 就是 通过afterPropertiesSet() 调用的。所以在MapperFactoryBean 初始化创建的时候就会调用checkDaoConfig(),即 加载Mapper接口。</p>
-<p>根据上面的分析，我们可以发现 <strong>configuration.addMapper()</strong> 是实现加载Mapper接口的最核心的方法，那么我们就来好好分析下这个方法内部实现源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="keyword">void</span> <span class="title function_">addMapper</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">  mapperRegistry.addMapper(type);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>其内部是通过 委托 <strong>mapperRegistry</strong> 来就行加载的，那继续往下看：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="keyword">void</span> <span class="title function_">addMapper</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">  <span class="comment">// 1、 判断是否为接口</span></span><br><span class="line">  <span class="keyword">if</span> (type.isInterface()) &#123;</span><br><span class="line">    <span class="comment">// 2、 判断是否已加载</span></span><br><span class="line">    <span class="keyword">if</span> (hasMapper(type)) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Type &quot;</span> + type + <span class="string">&quot; is already known to the MapperRegistry.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">loadCompleted</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 3、 将 Mapper的class作为 MapperProxyFactory(生成Mapper代理对象的工厂类) 的构参，并保存到 knownMappers 中。</span></span><br><span class="line">      knownMappers.put(type, <span class="keyword">new</span> <span class="title class_">MapperProxyFactory</span>&lt;T&gt;(type));</span><br><span class="line">      <span class="comment">// 4、 解析 Class对象中，包含的所有mybatis框架中定义的注解，并生成Cache、ResultMap、MappedStatement。</span></span><br><span class="line">      <span class="type">MapperAnnotationBuilder</span> <span class="variable">parser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MapperAnnotationBuilder</span>(config, type);</span><br><span class="line">      parser.parse();</span><br><span class="line">      loadCompleted = <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (!loadCompleted) &#123;</span><br><span class="line">        knownMappers.remove(type);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>根据源码可以把整个加载流程分4个步骤：</p>
-<ul>
-<li>1、 判断是否为接口</li>
-<li>2、 判断是否已加载</li>
-<li><strong>3、 将 Mapper的class作为 MapperProxyFactory(生成Mapper代理对象的工厂类) 的构参，并保存到 knownMappers 中。</strong></li>
-<li><strong>4、 解析 Class对象中，包含的所有mybatis框架中定义的注解，并生成Cache、ResultMap、MappedStatement。</strong></li>
-</ul>
-<p>其中第三步是加载Mapper的核心，也就是同创建了一个生成Mapper代理对象的工厂对象，并将其放到map，等需要创建Mapper代理对象的是再通过获取map中的工厂对象即可。 关于第四步，就是最近几年比较流行的通过注解编写SQl形式的解析方法。我们知道mybatis支持xml和注解形式的Sql编写。所以 <strong>MapperAnnotationBuilder</strong> 就是解析注解形式，根解析xml一样， 最终也会生成 ResultMap、MappedStatement对象封装到 configuration 中。关于它是如何解析的，有兴趣的同学可以看啊可能源码，这里不在描述。</p>
-<h3 id="二、-Mapper动态代理对象（MapperProxy）的创建"><a href="#二、-Mapper动态代理对象（MapperProxy）的创建" class="headerlink" title="二、 Mapper动态代理对象（MapperProxy）的创建"></a>二、 Mapper动态代理对象（MapperProxy）的创建</h3><p>通过之前的文章，我们知道 MapperFactoryBean 实现了 FactoryBean，也就是说在Spring 根据BeanDefinition 加载Bean的时候会调用 MapperFactoryBean.getObject() 获取真实的Bean并注入到容器中。不用想，getObject()获取到的一定是Mapper接口的代理实现类 <strong>MapperProxy</strong>,那么我们来一步步分析是如何创建 <strong>MapperProxy</strong>：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> T <span class="title function_">getObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  <span class="keyword">return</span> getSqlSession().getMapper(<span class="built_in">this</span>.mapperInterface);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>getObject()方法是通过 getSqlSession().getMapper() 获取到 MapperProxy 的，相信大家对这个不陌生吧。至于这里的SqlSession 其实是 SqlSessionTemplate ，这个之前也讲过，所以继续查看：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; T <span class="title function_">getMapper</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> getConfiguration().getMapper(type, <span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最终还是通过 <strong>configuration().getMapper()</strong> 获取到 MapperProxy。继续查看：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; T <span class="title function_">getMapper</span><span class="params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> mapperRegistry.getMapper(type, sqlSession);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>毫不意外的肯定是委托 <strong>mapperRegistry.getMapper()</strong> 来获取，继续查看：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; T <span class="title function_">getMapper</span><span class="params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> &#123;</span><br><span class="line">  <span class="comment">// 1、 从 knownMappers 中获取到  MapperProxyFactory </span></span><br><span class="line">  <span class="keyword">final</span> MapperProxyFactory&lt;T&gt; mapperProxyFactory = (MapperProxyFactory&lt;T&gt;) knownMappers.get(type);</span><br><span class="line">  <span class="keyword">if</span> (mapperProxyFactory == <span class="literal">null</span>)</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Type &quot;</span> + type + <span class="string">&quot; is not known to the MapperRegistry.&quot;</span>);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 2、 通过  mapperProxyFactory.newInstance() 创建 MapperProxy</span></span><br><span class="line">    <span class="keyword">return</span> mapperProxyFactory.newInstance(sqlSession);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Error getting mapper instance. Cause: &quot;</span> + e, e);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>也毫不意外的是 从 knownMappers 中获取到  <strong>MapperProxyFactory</strong> ，再 通过  mapperProxyFactory.newInstance() 创建 MapperProxy。 继续查看 mapperProxyFactory.newInstance() 内部实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line"><span class="keyword">protected</span> T <span class="title function_">newInstance</span><span class="params">(MapperProxy&lt;T&gt; mapperProxy)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), <span class="keyword">new</span> <span class="title class_">Class</span>[] &#123; mapperInterface &#125;, mapperProxy);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> T <span class="title function_">newInstance</span><span class="params">(SqlSession sqlSession)</span> &#123;</span><br><span class="line">  <span class="keyword">final</span> MapperProxy&lt;T&gt; mapperProxy = <span class="keyword">new</span> <span class="title class_">MapperProxy</span>&lt;T&gt;(sqlSession, mapperInterface, methodCache);</span><br><span class="line">  <span class="keyword">return</span> newInstance(mapperProxy);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从上面源码可以清晰的看到  Proxy.newProxyInstance() 指定了被代理的类是 mapperInterface，其代理类是 mapperProxy，所以最终动态创建出 mapperInterface 的动态代理类 MapperProxy@xxxx （动态代理类名）</p>
-<h3 id="三、-MapperProxy-接口方法的实现"><a href="#三、-MapperProxy-接口方法的实现" class="headerlink" title="三、 MapperProxy 接口方法的实现"></a>三、 MapperProxy 接口方法的实现</h3><p>通过上面的解析，我们明确了 MapperProxy 代理是通过JDK动态生成，但接口方法是如何实现的呢？ 这里就得看 MapperProxy 源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MapperProxy</span>&lt;T&gt; <span class="keyword">implements</span> <span class="title class_">InvocationHandler</span>, Serializable &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> -<span class="number">6424540398559729838L</span>;</span><br><span class="line">  <span class="comment">// 注意： 这个 SqlSession 实际上是 SqlSessionTemplate</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> SqlSession sqlSession;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Class&lt;T&gt; mapperInterface;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;Method, MapperMethod&gt; methodCache;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">MapperProxy</span><span class="params">(SqlSession sqlSession, Class&lt;T&gt; mapperInterface, Map&lt;Method, MapperMethod&gt; methodCache)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.sqlSession = sqlSession;</span><br><span class="line">    <span class="built_in">this</span>.mapperInterface = mapperInterface;</span><br><span class="line">    <span class="built_in">this</span>.methodCache = methodCache;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 如果调用的方法是 Object 种定义的方法，直接执行</span></span><br><span class="line">    <span class="keyword">if</span> (Object.class.equals(method.getDeclaringClass())) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> method.invoke(<span class="built_in">this</span>, args);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        <span class="keyword">throw</span> ExceptionUtil.unwrapThrowable(t);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 接口方法的调用都是通过 MapperMethod 来执行的</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">MapperMethod</span> <span class="variable">mapperMethod</span> <span class="operator">=</span> cachedMapperMethod(method);</span><br><span class="line">    <span class="keyword">return</span> mapperMethod.execute(sqlSession, args);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Mapper接口的每个方法 都会生成一个 MapperMethod 对象，并通过 methodCache 来维护它们之间的关系</span></span><br><span class="line">  <span class="keyword">private</span> MapperMethod <span class="title function_">cachedMapperMethod</span><span class="params">(Method method)</span> &#123;</span><br><span class="line">    <span class="type">MapperMethod</span> <span class="variable">mapperMethod</span> <span class="operator">=</span> methodCache.get(method);</span><br><span class="line">    <span class="keyword">if</span> (mapperMethod == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 注意这里 传入了 要执行的 方法信息</span></span><br><span class="line">      mapperMethod = <span class="keyword">new</span> <span class="title class_">MapperMethod</span>(mapperInterface, method, sqlSession.getConfiguration());</span><br><span class="line">      methodCache.put(method, mapperMethod);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mapperMethod;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从上面源码中，我们可以发现，接口方法的实现其实是通过 <strong>MapperMethod</strong> 来实现的，且  Mapper接口的每个方法 都会生成一个 MapperMethod 对象，并通过 <strong>methodCache</strong> 来维护它们之间的关系，而 <strong>methodCache</strong> 是通过 <strong>MapperProxyFactory</strong> 传递下来的。</p>
-<p><strong>MapperMethod</strong></p>
-<p><strong>MapperMethod</strong> 实现接口方法的入口是 execute()方法，我们来看下其内部源码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实际上都是调用 SqlSession的方法实现</span></span><br><span class="line"><span class="keyword">public</span> Object <span class="title function_">execute</span><span class="params">(SqlSession sqlSession, Object[] args)</span> &#123;</span><br><span class="line">  Object result;</span><br><span class="line">  <span class="comment">// 判断 索要执行的方法类型</span></span><br><span class="line">  <span class="keyword">if</span> (SqlCommandType.INSERT == command.getType()) &#123;</span><br><span class="line">    <span class="comment">// 参数转换</span></span><br><span class="line">    <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">    <span class="comment">// 执行insert</span></span><br><span class="line">    result = rowCountResult(sqlSession.insert(command.getName(), param));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SqlCommandType.UPDATE == command.getType()) &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">    <span class="comment">// 执行 update</span></span><br><span class="line">    result = rowCountResult(sqlSession.update(command.getName(), param));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SqlCommandType.DELETE == command.getType()) &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">    <span class="comment">// 执行 delete</span></span><br><span class="line">    result = rowCountResult(sqlSession.delete(command.getName(), param));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SqlCommandType.SELECT == command.getType()) &#123;</span><br><span class="line">    <span class="comment">// 执行 select</span></span><br><span class="line">    <span class="keyword">if</span> (method.returnsVoid() &amp;&amp; method.hasResultHandler()) &#123;</span><br><span class="line">      <span class="comment">// 没有返回</span></span><br><span class="line">      executeWithResultHandler(sqlSession, args);</span><br><span class="line">      result = <span class="literal">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (method.returnsMany()) &#123;</span><br><span class="line">      <span class="comment">// 返回 List</span></span><br><span class="line">      result = executeForMany(sqlSession, args);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (method.returnsMap()) &#123;</span><br><span class="line">      <span class="comment">// 返回 Map</span></span><br><span class="line">      result = executeForMap(sqlSession, args);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 返回 一个对象</span></span><br><span class="line">      <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">      result = sqlSession.selectOne(command.getName(), param);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Unknown execution method for: &quot;</span> + command.getName());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (result == <span class="literal">null</span> &amp;&amp; method.getReturnType().isPrimitive() &amp;&amp; !method.returnsVoid()) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Mapper method &#x27;&quot;</span> + command.getName() </span><br><span class="line">        + <span class="string">&quot; attempted to return null from a method with a primitive return type (&quot;</span> + method.getReturnType() + <span class="string">&quot;).&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>根据源码我们可以发现其实内部都是 委托 SqlSession 的方法实现的，但它是如何区别什么时候调用哪个 SqlSession 的方法呢？这个就不得不说 MapperMethod 内部维护的 <strong>SqlCommand</strong> 对象，我们查看 SqlCommand 的构造方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">SqlCommand</span><span class="params">(Configuration configuration, Class&lt;?&gt; mapperInterface, Method method)</span> <span class="keyword">throws</span> BindingException &#123;</span><br><span class="line">     <span class="comment">// 补全 方法的全名称路径 即 com.xxx.selectByName </span></span><br><span class="line">     <span class="type">String</span> <span class="variable">statementName</span> <span class="operator">=</span> mapperInterface.getName() + <span class="string">&quot;.&quot;</span> + method.getName();</span><br><span class="line">     <span class="type">MappedStatement</span> <span class="variable">ms</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">     <span class="comment">// 从 configuration 中获取到 MappedStatement 对象</span></span><br><span class="line">     <span class="keyword">if</span> (configuration.hasStatement(statementName)) &#123;</span><br><span class="line">       ms = configuration.getMappedStatement(statementName);</span><br><span class="line">     &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!mapperInterface.equals(method.getDeclaringClass().getName())) &#123; <span class="comment">// issue #35</span></span><br><span class="line">       <span class="type">String</span> <span class="variable">parentStatementName</span> <span class="operator">=</span> method.getDeclaringClass().getName() + <span class="string">&quot;.&quot;</span> + method.getName();</span><br><span class="line">       <span class="keyword">if</span> (configuration.hasStatement(parentStatementName)) &#123;</span><br><span class="line">         ms = configuration.getMappedStatement(parentStatementName);</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">if</span> (ms == <span class="literal">null</span>) &#123;</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Invalid bound statement (not found): &quot;</span> + statementName);</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="comment">// 从 MappedStatement 中获取到方法名 (注意： 节点中的id属性包含命名空间)</span></span><br><span class="line">     name = ms.getId();</span><br><span class="line">     <span class="comment">// 从 MappedStatement 中获取到 方法的节点标签，即 select|insert|update|delete</span></span><br><span class="line">     type = ms.getSqlCommandType();</span><br><span class="line">     <span class="keyword">if</span> (type == SqlCommandType.UNKNOWN) &#123;</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Unknown execution method for: &quot;</span> + name);</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们通过分析知道 ，SqlCommand 其实是通过从 MappedStatement 中获取到 方法名，以及所要执行的SQl命令类型（select|insert|update|delete）。 这里我们可以明确的发现从configuration 中 获取 MappedStatement 是通过 全称路径的方法去获取的，即 com.xxx.selectByName  这种，调用SqlSession的方法虽然是从 MappedStatement 中获取 id (注意： 节点中的id属性包含命名空间),但实质上都是 com.xxx.selectByName。但<strong>我们可以通过这里看出mybatis的Mapper接口方法是不可以重载的。</strong></p>
-<h3 id="四、-个人总结"><a href="#四、-个人总结" class="headerlink" title="四、 个人总结"></a>四、 个人总结</h3><ul>
-<li>1、 Configuration 维护了一个 <strong>MapperRegistry</strong> 对象，该对象主要作用就是加载Mapper接口和获取MapperProxy。</li>
-<li>2、 MapperRegistry 维护了一个key为 mapper接口class对象，value为 <strong>MapperProxyFactory</strong> 的map</li>
-<li>3、 <strong>MapperProxy</strong> 是 通过  <strong>MapperProxyFactory</strong> 创建的。</li>
-<li>4、 <strong>MapperProxy</strong> 实现 Mapper接口方法是委托 <strong>MapperMethod</strong> 执行的。</li>
-<li>5、 <strong>MapperMethod</strong> 执行接口方法时是通过 <strong>SqlCommand</strong> 来判断要执行的具体 SQL节点，并且最终委托 <strong>SqlSession</strong>执行。</li>
-<li>6、 <strong>SqlCommand</strong> 内部的 信息是通过从 <strong>MappedStatement</strong> 中获取的。</li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Mybatis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2023/05/29/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%BA%94)Mapper%E4%BB%A3%E7%90%86%E7%B1%BB%E7%94%9F%E6%88%90/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Mybatis源码阅读(六)Session操作数据库" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -2212,6 +2109,137 @@
 
 
   
+    <article id="post-Mybatis源码阅读(五)Mapper代理类生成" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2023/05/29/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%BA%94)Mapper%E4%BB%A3%E7%90%86%E7%B1%BB%E7%94%9F%E6%88%90/">Mybatis源码阅读(五)Mapper代理类生成</a>
+    </h1>
+  
+
+        
+        <a href="/2023/05/29/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%BA%94)Mapper%E4%BB%A3%E7%90%86%E7%B1%BB%E7%94%9F%E6%88%90/" class="archive-article-date">
+  	<time datetime="2023-05-29T02:03:48.083Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Mapper代理生成"><a href="#Mapper代理生成" class="headerlink" title="Mapper代理生成"></a>Mapper代理生成</h1><h3 id="一、加载-Mapper接口"><a href="#一、加载-Mapper接口" class="headerlink" title="一、加载 Mapper接口"></a>一、加载 Mapper接口</h3><p>针对Mybatis项目，Mapper的配置加载是从XmlConfigBuilder.mapperElement()方法中触发的。我们来看下源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">mapperElement</span><span class="params">(XNode parent)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  <span class="keyword">if</span> (parent != <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (XNode child : parent.getChildren()) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="string">&quot;package&quot;</span>.equals(child.getName())) &#123;</span><br><span class="line">        <span class="comment">// 通过  package 形式加载 ,内部其实也是获取到 package 路径下的所有class再通过  class 形式加载</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">mapperPackage</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">        configuration.addMappers(mapperPackage);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">resource</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;resource&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;url&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">mapperClass</span> <span class="operator">=</span> child.getStringAttribute(<span class="string">&quot;class&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (resource != <span class="literal">null</span> &amp;&amp; url == <span class="literal">null</span> &amp;&amp; mapperClass == <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 加载 Mapper.xml 的</span></span><br><span class="line">          ErrorContext.instance().resource(resource);</span><br><span class="line">          <span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> Resources.getResourceAsStream(resource);</span><br><span class="line">          <span class="type">XMLMapperBuilder</span> <span class="variable">mapperParser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">XMLMapperBuilder</span>(inputStream, configuration, resource, configuration.getSqlFragments());</span><br><span class="line">          mapperParser.parse();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (resource == <span class="literal">null</span> &amp;&amp; url != <span class="literal">null</span> &amp;&amp; mapperClass == <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 加载 Mapper.xml 的</span></span><br><span class="line">          ErrorContext.instance().resource(url);</span><br><span class="line">          <span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> Resources.getUrlAsStream(url);</span><br><span class="line">          <span class="type">XMLMapperBuilder</span> <span class="variable">mapperParser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">XMLMapperBuilder</span>(inputStream, configuration, url, configuration.getSqlFragments());</span><br><span class="line">          mapperParser.parse();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (resource == <span class="literal">null</span> &amp;&amp; url == <span class="literal">null</span> &amp;&amp; mapperClass != <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 通过  class 形式加载</span></span><br><span class="line">          Class&lt;?&gt; mapperInterface = Resources.classForName(mapperClass);</span><br><span class="line">          configuration.addMapper(mapperInterface);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BuilderException</span>(<span class="string">&quot;A mapper element may only specify a url, resource or class, but not more than one.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面源码看，加载Mapper接口有2种形式： 一种是根据设置的 package 找到路径下面所有的class并通过configuration.addMapper() 加载。 另一种是根据指定设置的Mapper接口路径直接通过 configuration.addMapper()加载class。所以加载Mapper接口最终都是 <strong>configuration.addMapper()</strong> 来加载的。</p>
+<p>而针对Mybatis-Spring项目则是 获取 MapperScannerConfigurer 的 basePackage 参数，并通过 ClassPathMapperScanner 扫描到 设置的 basePackage  路径下的所有class ，并得到 BeanDefinition ，后面的情况在第一篇文章已经讲过，最终是得到了 <strong>MapperFactoryBean</strong> ，并且还到了  MapperFactoryBean 内部的 checkDaoConfig() 方法加载Mapper接口的内容，那么我们再次回顾下这个方法的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">checkDaoConfig</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="built_in">super</span>.checkDaoConfig();</span><br><span class="line"></span><br><span class="line">  notNull(<span class="built_in">this</span>.mapperInterface, <span class="string">&quot;Property &#x27;mapperInterface&#x27; is required&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="type">Configuration</span> <span class="variable">configuration</span> <span class="operator">=</span> getSqlSession().getConfiguration();</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">this</span>.addToConfig &amp;&amp; !configuration.hasMapper(<span class="built_in">this</span>.mapperInterface)) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 最终都是通过 addMapper() 方法加载的。</span></span><br><span class="line">      configuration.addMapper(<span class="built_in">this</span>.mapperInterface);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">      logger.error(<span class="string">&quot;Error while adding the mapper &#x27;&quot;</span> + <span class="built_in">this</span>.mapperInterface + <span class="string">&quot;&#x27; to configuration.&quot;</span>, t);</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(t);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      ErrorContext.instance().reset();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从源码中我们发现 内部其实还是通过 <strong>configuration.addMapper()</strong> 加载的。可能有些同学会问，checkDaoConfig()什么时候被调用的，这个可以追溯到 MapperFactoryBean 的继承关系图，可以发现实现了 InitializingBean接口， 而 checkDaoConfig（） 就是 通过afterPropertiesSet() 调用的。所以在MapperFactoryBean 初始化创建的时候就会调用checkDaoConfig(),即 加载Mapper接口。</p>
+<p>根据上面的分析，我们可以发现 <strong>configuration.addMapper()</strong> 是实现加载Mapper接口的最核心的方法，那么我们就来好好分析下这个方法内部实现源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="keyword">void</span> <span class="title function_">addMapper</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">  mapperRegistry.addMapper(type);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其内部是通过 委托 <strong>mapperRegistry</strong> 来就行加载的，那继续往下看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="keyword">void</span> <span class="title function_">addMapper</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">  <span class="comment">// 1、 判断是否为接口</span></span><br><span class="line">  <span class="keyword">if</span> (type.isInterface()) &#123;</span><br><span class="line">    <span class="comment">// 2、 判断是否已加载</span></span><br><span class="line">    <span class="keyword">if</span> (hasMapper(type)) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Type &quot;</span> + type + <span class="string">&quot; is already known to the MapperRegistry.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">loadCompleted</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 3、 将 Mapper的class作为 MapperProxyFactory(生成Mapper代理对象的工厂类) 的构参，并保存到 knownMappers 中。</span></span><br><span class="line">      knownMappers.put(type, <span class="keyword">new</span> <span class="title class_">MapperProxyFactory</span>&lt;T&gt;(type));</span><br><span class="line">      <span class="comment">// 4、 解析 Class对象中，包含的所有mybatis框架中定义的注解，并生成Cache、ResultMap、MappedStatement。</span></span><br><span class="line">      <span class="type">MapperAnnotationBuilder</span> <span class="variable">parser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MapperAnnotationBuilder</span>(config, type);</span><br><span class="line">      parser.parse();</span><br><span class="line">      loadCompleted = <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (!loadCompleted) &#123;</span><br><span class="line">        knownMappers.remove(type);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据源码可以把整个加载流程分4个步骤：</p>
+<ul>
+<li>1、 判断是否为接口</li>
+<li>2、 判断是否已加载</li>
+<li><strong>3、 将 Mapper的class作为 MapperProxyFactory(生成Mapper代理对象的工厂类) 的构参，并保存到 knownMappers 中。</strong></li>
+<li><strong>4、 解析 Class对象中，包含的所有mybatis框架中定义的注解，并生成Cache、ResultMap、MappedStatement。</strong></li>
+</ul>
+<p>其中第三步是加载Mapper的核心，也就是同创建了一个生成Mapper代理对象的工厂对象，并将其放到map，等需要创建Mapper代理对象的是再通过获取map中的工厂对象即可。 关于第四步，就是最近几年比较流行的通过注解编写SQl形式的解析方法。我们知道mybatis支持xml和注解形式的Sql编写。所以 <strong>MapperAnnotationBuilder</strong> 就是解析注解形式，根解析xml一样， 最终也会生成 ResultMap、MappedStatement对象封装到 configuration 中。关于它是如何解析的，有兴趣的同学可以看啊可能源码，这里不在描述。</p>
+<h3 id="二、-Mapper动态代理对象（MapperProxy）的创建"><a href="#二、-Mapper动态代理对象（MapperProxy）的创建" class="headerlink" title="二、 Mapper动态代理对象（MapperProxy）的创建"></a>二、 Mapper动态代理对象（MapperProxy）的创建</h3><p>通过之前的文章，我们知道 MapperFactoryBean 实现了 FactoryBean，也就是说在Spring 根据BeanDefinition 加载Bean的时候会调用 MapperFactoryBean.getObject() 获取真实的Bean并注入到容器中。不用想，getObject()获取到的一定是Mapper接口的代理实现类 <strong>MapperProxy</strong>,那么我们来一步步分析是如何创建 <strong>MapperProxy</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> T <span class="title function_">getObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">  <span class="keyword">return</span> getSqlSession().getMapper(<span class="built_in">this</span>.mapperInterface);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getObject()方法是通过 getSqlSession().getMapper() 获取到 MapperProxy 的，相信大家对这个不陌生吧。至于这里的SqlSession 其实是 SqlSessionTemplate ，这个之前也讲过，所以继续查看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; T <span class="title function_">getMapper</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> getConfiguration().getMapper(type, <span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终还是通过 <strong>configuration().getMapper()</strong> 获取到 MapperProxy。继续查看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; T <span class="title function_">getMapper</span><span class="params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> mapperRegistry.getMapper(type, sqlSession);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>毫不意外的肯定是委托 <strong>mapperRegistry.getMapper()</strong> 来获取，继续查看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; T <span class="title function_">getMapper</span><span class="params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> &#123;</span><br><span class="line">  <span class="comment">// 1、 从 knownMappers 中获取到  MapperProxyFactory </span></span><br><span class="line">  <span class="keyword">final</span> MapperProxyFactory&lt;T&gt; mapperProxyFactory = (MapperProxyFactory&lt;T&gt;) knownMappers.get(type);</span><br><span class="line">  <span class="keyword">if</span> (mapperProxyFactory == <span class="literal">null</span>)</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Type &quot;</span> + type + <span class="string">&quot; is not known to the MapperRegistry.&quot;</span>);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 2、 通过  mapperProxyFactory.newInstance() 创建 MapperProxy</span></span><br><span class="line">    <span class="keyword">return</span> mapperProxyFactory.newInstance(sqlSession);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Error getting mapper instance. Cause: &quot;</span> + e, e);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也毫不意外的是 从 knownMappers 中获取到  <strong>MapperProxyFactory</strong> ，再 通过  mapperProxyFactory.newInstance() 创建 MapperProxy。 继续查看 mapperProxyFactory.newInstance() 内部实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line"><span class="keyword">protected</span> T <span class="title function_">newInstance</span><span class="params">(MapperProxy&lt;T&gt; mapperProxy)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), <span class="keyword">new</span> <span class="title class_">Class</span>[] &#123; mapperInterface &#125;, mapperProxy);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> T <span class="title function_">newInstance</span><span class="params">(SqlSession sqlSession)</span> &#123;</span><br><span class="line">  <span class="keyword">final</span> MapperProxy&lt;T&gt; mapperProxy = <span class="keyword">new</span> <span class="title class_">MapperProxy</span>&lt;T&gt;(sqlSession, mapperInterface, methodCache);</span><br><span class="line">  <span class="keyword">return</span> newInstance(mapperProxy);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面源码可以清晰的看到  Proxy.newProxyInstance() 指定了被代理的类是 mapperInterface，其代理类是 mapperProxy，所以最终动态创建出 mapperInterface 的动态代理类 MapperProxy@xxxx （动态代理类名）</p>
+<h3 id="三、-MapperProxy-接口方法的实现"><a href="#三、-MapperProxy-接口方法的实现" class="headerlink" title="三、 MapperProxy 接口方法的实现"></a>三、 MapperProxy 接口方法的实现</h3><p>通过上面的解析，我们明确了 MapperProxy 代理是通过JDK动态生成，但接口方法是如何实现的呢？ 这里就得看 MapperProxy 源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MapperProxy</span>&lt;T&gt; <span class="keyword">implements</span> <span class="title class_">InvocationHandler</span>, Serializable &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> -<span class="number">6424540398559729838L</span>;</span><br><span class="line">  <span class="comment">// 注意： 这个 SqlSession 实际上是 SqlSessionTemplate</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> SqlSession sqlSession;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Class&lt;T&gt; mapperInterface;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;Method, MapperMethod&gt; methodCache;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">MapperProxy</span><span class="params">(SqlSession sqlSession, Class&lt;T&gt; mapperInterface, Map&lt;Method, MapperMethod&gt; methodCache)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.sqlSession = sqlSession;</span><br><span class="line">    <span class="built_in">this</span>.mapperInterface = mapperInterface;</span><br><span class="line">    <span class="built_in">this</span>.methodCache = methodCache;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 如果调用的方法是 Object 种定义的方法，直接执行</span></span><br><span class="line">    <span class="keyword">if</span> (Object.class.equals(method.getDeclaringClass())) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> method.invoke(<span class="built_in">this</span>, args);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        <span class="keyword">throw</span> ExceptionUtil.unwrapThrowable(t);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 接口方法的调用都是通过 MapperMethod 来执行的</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">MapperMethod</span> <span class="variable">mapperMethod</span> <span class="operator">=</span> cachedMapperMethod(method);</span><br><span class="line">    <span class="keyword">return</span> mapperMethod.execute(sqlSession, args);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Mapper接口的每个方法 都会生成一个 MapperMethod 对象，并通过 methodCache 来维护它们之间的关系</span></span><br><span class="line">  <span class="keyword">private</span> MapperMethod <span class="title function_">cachedMapperMethod</span><span class="params">(Method method)</span> &#123;</span><br><span class="line">    <span class="type">MapperMethod</span> <span class="variable">mapperMethod</span> <span class="operator">=</span> methodCache.get(method);</span><br><span class="line">    <span class="keyword">if</span> (mapperMethod == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 注意这里 传入了 要执行的 方法信息</span></span><br><span class="line">      mapperMethod = <span class="keyword">new</span> <span class="title class_">MapperMethod</span>(mapperInterface, method, sqlSession.getConfiguration());</span><br><span class="line">      methodCache.put(method, mapperMethod);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mapperMethod;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面源码中，我们可以发现，接口方法的实现其实是通过 <strong>MapperMethod</strong> 来实现的，且  Mapper接口的每个方法 都会生成一个 MapperMethod 对象，并通过 <strong>methodCache</strong> 来维护它们之间的关系，而 <strong>methodCache</strong> 是通过 <strong>MapperProxyFactory</strong> 传递下来的。</p>
+<p><strong>MapperMethod</strong></p>
+<p><strong>MapperMethod</strong> 实现接口方法的入口是 execute()方法，我们来看下其内部源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实际上都是调用 SqlSession的方法实现</span></span><br><span class="line"><span class="keyword">public</span> Object <span class="title function_">execute</span><span class="params">(SqlSession sqlSession, Object[] args)</span> &#123;</span><br><span class="line">  Object result;</span><br><span class="line">  <span class="comment">// 判断 索要执行的方法类型</span></span><br><span class="line">  <span class="keyword">if</span> (SqlCommandType.INSERT == command.getType()) &#123;</span><br><span class="line">    <span class="comment">// 参数转换</span></span><br><span class="line">    <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">    <span class="comment">// 执行insert</span></span><br><span class="line">    result = rowCountResult(sqlSession.insert(command.getName(), param));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SqlCommandType.UPDATE == command.getType()) &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">    <span class="comment">// 执行 update</span></span><br><span class="line">    result = rowCountResult(sqlSession.update(command.getName(), param));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SqlCommandType.DELETE == command.getType()) &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">    <span class="comment">// 执行 delete</span></span><br><span class="line">    result = rowCountResult(sqlSession.delete(command.getName(), param));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SqlCommandType.SELECT == command.getType()) &#123;</span><br><span class="line">    <span class="comment">// 执行 select</span></span><br><span class="line">    <span class="keyword">if</span> (method.returnsVoid() &amp;&amp; method.hasResultHandler()) &#123;</span><br><span class="line">      <span class="comment">// 没有返回</span></span><br><span class="line">      executeWithResultHandler(sqlSession, args);</span><br><span class="line">      result = <span class="literal">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (method.returnsMany()) &#123;</span><br><span class="line">      <span class="comment">// 返回 List</span></span><br><span class="line">      result = executeForMany(sqlSession, args);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (method.returnsMap()) &#123;</span><br><span class="line">      <span class="comment">// 返回 Map</span></span><br><span class="line">      result = executeForMap(sqlSession, args);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 返回 一个对象</span></span><br><span class="line">      <span class="type">Object</span> <span class="variable">param</span> <span class="operator">=</span> method.convertArgsToSqlCommandParam(args);</span><br><span class="line">      result = sqlSession.selectOne(command.getName(), param);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Unknown execution method for: &quot;</span> + command.getName());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (result == <span class="literal">null</span> &amp;&amp; method.getReturnType().isPrimitive() &amp;&amp; !method.returnsVoid()) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Mapper method &#x27;&quot;</span> + command.getName() </span><br><span class="line">        + <span class="string">&quot; attempted to return null from a method with a primitive return type (&quot;</span> + method.getReturnType() + <span class="string">&quot;).&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据源码我们可以发现其实内部都是 委托 SqlSession 的方法实现的，但它是如何区别什么时候调用哪个 SqlSession 的方法呢？这个就不得不说 MapperMethod 内部维护的 <strong>SqlCommand</strong> 对象，我们查看 SqlCommand 的构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">SqlCommand</span><span class="params">(Configuration configuration, Class&lt;?&gt; mapperInterface, Method method)</span> <span class="keyword">throws</span> BindingException &#123;</span><br><span class="line">     <span class="comment">// 补全 方法的全名称路径 即 com.xxx.selectByName </span></span><br><span class="line">     <span class="type">String</span> <span class="variable">statementName</span> <span class="operator">=</span> mapperInterface.getName() + <span class="string">&quot;.&quot;</span> + method.getName();</span><br><span class="line">     <span class="type">MappedStatement</span> <span class="variable">ms</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">     <span class="comment">// 从 configuration 中获取到 MappedStatement 对象</span></span><br><span class="line">     <span class="keyword">if</span> (configuration.hasStatement(statementName)) &#123;</span><br><span class="line">       ms = configuration.getMappedStatement(statementName);</span><br><span class="line">     &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!mapperInterface.equals(method.getDeclaringClass().getName())) &#123; <span class="comment">// issue #35</span></span><br><span class="line">       <span class="type">String</span> <span class="variable">parentStatementName</span> <span class="operator">=</span> method.getDeclaringClass().getName() + <span class="string">&quot;.&quot;</span> + method.getName();</span><br><span class="line">       <span class="keyword">if</span> (configuration.hasStatement(parentStatementName)) &#123;</span><br><span class="line">         ms = configuration.getMappedStatement(parentStatementName);</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">if</span> (ms == <span class="literal">null</span>) &#123;</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Invalid bound statement (not found): &quot;</span> + statementName);</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="comment">// 从 MappedStatement 中获取到方法名 (注意： 节点中的id属性包含命名空间)</span></span><br><span class="line">     name = ms.getId();</span><br><span class="line">     <span class="comment">// 从 MappedStatement 中获取到 方法的节点标签，即 select|insert|update|delete</span></span><br><span class="line">     type = ms.getSqlCommandType();</span><br><span class="line">     <span class="keyword">if</span> (type == SqlCommandType.UNKNOWN) &#123;</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BindingException</span>(<span class="string">&quot;Unknown execution method for: &quot;</span> + name);</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们通过分析知道 ，SqlCommand 其实是通过从 MappedStatement 中获取到 方法名，以及所要执行的SQl命令类型（select|insert|update|delete）。 这里我们可以明确的发现从configuration 中 获取 MappedStatement 是通过 全称路径的方法去获取的，即 com.xxx.selectByName  这种，调用SqlSession的方法虽然是从 MappedStatement 中获取 id (注意： 节点中的id属性包含命名空间),但实质上都是 com.xxx.selectByName。但<strong>我们可以通过这里看出mybatis的Mapper接口方法是不可以重载的。</strong></p>
+<h3 id="四、-个人总结"><a href="#四、-个人总结" class="headerlink" title="四、 个人总结"></a>四、 个人总结</h3><ul>
+<li>1、 Configuration 维护了一个 <strong>MapperRegistry</strong> 对象，该对象主要作用就是加载Mapper接口和获取MapperProxy。</li>
+<li>2、 MapperRegistry 维护了一个key为 mapper接口class对象，value为 <strong>MapperProxyFactory</strong> 的map</li>
+<li>3、 <strong>MapperProxy</strong> 是 通过  <strong>MapperProxyFactory</strong> 创建的。</li>
+<li>4、 <strong>MapperProxy</strong> 实现 Mapper接口方法是委托 <strong>MapperMethod</strong> 执行的。</li>
+<li>5、 <strong>MapperMethod</strong> 执行接口方法时是通过 <strong>SqlCommand</strong> 来判断要执行的具体 SQL节点，并且最终委托 <strong>SqlSession</strong>执行。</li>
+<li>6、 <strong>SqlCommand</strong> 内部的 信息是通过从 <strong>MappedStatement</strong> 中获取的。</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Mybatis</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2023/05/29/Mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%BA%94)Mapper%E4%BB%A3%E7%90%86%E7%B1%BB%E7%94%9F%E6%88%90/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-TCP&amp;UPD" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -2462,19 +2490,19 @@
 
 
   
-    <article id="post-Https" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-JMM" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2023/05/29/Https/">Https</a>
+      <a class="article-title" href="/2023/05/29/JMM/">JMM</a>
     </h1>
   
 
         
-        <a href="/2023/05/29/Https/" class="archive-article-date">
+        <a href="/2023/05/29/JMM/" class="archive-article-date">
   	<time datetime="2023-05-29T02:03:48.082Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-05-29</time>
 </a>
         
@@ -2482,90 +2510,164 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="OSI七层网络结构"><a href="#OSI七层网络结构" class="headerlink" title="OSI七层网络结构"></a>OSI七层网络结构</h2><h3 id="OSI的七层协议与TCP-IP体系结构"><a href="#OSI的七层协议与TCP-IP体系结构" class="headerlink" title="OSI的七层协议与TCP/IP体系结构"></a>OSI的七层协议与TCP/IP体系结构</h3><p>如下图可见，是OSI七层协议体系与TCP/IP的体系结构，<strong>实际上，TCP/IP的体系结构是四层</strong>，如图b。但是一般在学习<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C&spm=1001.2101.3001.7020">计算机网络</a>的原理时往往会采取折中的方法，<strong>综合OSI与TCP/IP的优点</strong>，就会<strong>采用五层协议</strong>的体系结构，如图c：</p>
-<p><img src="/assets/doc-images/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2Zlc2ZzZWZncw==,size_16,color_FFFFFF,t_70.png" alt="在这里插入图片描述"></p>
-<p><strong>注：</strong> <em>五层协议体系结构只是为了介绍网络原理设计的，实际应用的还是TCP/IP四层体系结构。</em></p>
-<h3 id="各层协议和功能"><a href="#各层协议和功能" class="headerlink" title="各层协议和功能"></a>各层协议和功能</h3><ul>
-<li><p>应用层： 针对特定应用的协议，为应用程序提供服务并规定应用程序中通信相关的细节。包括文件传输、电子邮件、远程登录等协议。</p>
-</li>
-<li><p>表示层： 将来自下一层的数据转换为上层能够处理的格式。负责数据转换、格式化、文本压缩等。</p>
-</li>
-<li><p>会话层： 负责建立和断开通信连接（数据流动的逻辑通路），以及数据的分割等数据传输相关的管理。</p>
-</li>
-<li><p>传输层： 管理两个节点之间的数据传输。</p>
-</li>
-<li><p>网络层： 地址管理和路由选择。</p>
-</li>
-<li><p>数据链路层： 互联设备之间传送和识别帧。</p>
-</li>
-<li><p>物理层： 以二进制形式在在物理媒体上传输数据。</p>
-<p><img src="/assets/doc-images/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2Zlc2ZzZWZncw==,size_16,color_FFFFFF,t_70-20220418111718743.png" alt="在这里插入图片描述"></p>
-<p><img src="/assets/doc-images/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2Zlc2ZzZWZncw==,size_16,color_FFFFFF,t_70-20220418111732713.png" alt="在这里插入图片描述"></p>
-</li>
-</ul>
-<p>其中WIFI是网络接口层。</p>
-<h1 id="Http和Https区别"><a href="#Http和Https区别" class="headerlink" title="Http和Https区别"></a>Http和Https区别</h1><p>超文本传输协议HTTP协议被用于在Web浏览器和网站服务器之间传递信息，HTTP协议以明文方式发送内容，不提供任何方式的数据加密，如果攻击者截取了Web浏览器和网站服务器之间的传输报文，就可以直接读懂其中的信息，因此，HTTP协议不适合传输一些敏感信息，比如：信用卡号、密码等支付信息。</p>
-<p>为了解决HTTP协议的这一缺陷，需要使用另一种协议：安全套接字层超文本传输协议HTTPS，为了数据传输的安全，HTTPS在HTTP的基础上加入了SSL协议，SSL依靠证书来验证服务器的身份，并为浏览器和服务器之间的通信加密。</p>
-<p><strong>一、HTTP和HTTPS的基本概念</strong></p>
-<p>HTTP：是互联网上应用最为广泛的一种网络协议，是一个客户端和服务器端请求和应答的标准（TCP），用于从WWW服务器传输超文本到本地浏览器的传输协议，它可以使浏览器更加高效，使网络传输减少。</p>
-<p>HTTPS：是以安全为目标的HTTP通道，简单讲是HTTP的安全版，即HTTP下加入SSL层，HTTPS的安全基础是SSL，因此加密的详细内容就需要SSL。</p>
-<p>HTTPS协议的主要作用可以分为两种：一种是建立一个信息安全通道，来保证数据传输的安全；另一种就是确认网站的真实性。</p>
-<p><strong>二、HTTP与HTTPS有什么区别？</strong></p>
-<p>HTTP协议传输的数据都是未加密的，也就是明文的，因此使用HTTP协议传输隐私信息非常不安全，为了保证这些隐私数据能加密传输，于是网景公司设计了SSL（Secure Sockets Layer）协议用于对HTTP协议传输的数据进行加密，从而就诞生了HTTPS。简单来说，HTTPS协议是由SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，要比http协议安全。</p>
-<p>HTTPS和HTTP的区别主要如下：</p>
-<p>1、https协议需要到ca申请证书，一般免费证书较少，因而需要一定费用。</p>
-<p>2、http是超文本传输协议，信息是明文传输，https则是具有安全性的ssl加密传输协议。</p>
-<p>3、http和https使用的是完全不同的连接方式，用的端口也不一样，前者是80，后者是443。</p>
-<p>4、http的连接很简单，是无状态的；HTTPS协议是由SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，比http协议安全。</p>
-<p><strong>三、HTTPS的工作原理</strong></p>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903545272041479">过程详解</a></p>
-<p>我们都知道HTTPS能够加密信息，以免敏感信息被第三方获取，所以很多银行网站或电子邮箱等等安全级别较高的服务都会采用HTTPS协议。</p>
-<p><img src="/assets/doc-images/1-150H120343I41.jpg" alt="HTTP与HTTPS的区别-马海祥博客"></p>
-<p>客户端在使用HTTPS方式与Web服务器通信时有以下几个步骤，如图所示。</p>
-<p>（1）客户使用https的URL访问Web服务器，要求与Web服务器建立SSL连接。</p>
-<p>（2）Web服务器收到客户端请求后，会将网站的证书信息（证书中包含公钥）传送一份给客户端。</p>
-<p>（3）客户端的浏览器与Web服务器开始协商SSL连接的安全等级，也就是信息加密的等级。</p>
-<p>（4）客户端的浏览器根据双方同意的安全等级，建立会话密钥，然后利用网站的公钥将会话密钥加密，并传送给网站。</p>
-<p>（5）Web服务器利用自己的私钥解密出会话密钥。</p>
-<p>（6）Web服务器利用会话密钥加密与客户端之间的通信。</p>
-<p><img src="/assets/doc-images/160c5b10d3f27e00~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="img"></p>
-<p><img src="/assets/doc-images/2012071410212142.gif" alt="img"></p>
-<p><strong>四、HTTPS的优点</strong></p>
-<p>尽管HTTPS并非绝对安全，掌握根证书的机构、掌握加密算法的组织同样可以进行中间人形式的攻击，但HTTPS仍是现行架构下最安全的解决方案，主要有以下几个好处：</p>
-<p>（1）使用HTTPS协议可认证用户和服务器，确保数据发送到正确的客户机和服务器；</p>
-<p>（2）HTTPS协议是由SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，要比http协议安全，可防止数据在传输过程中不被窃取、改变，确保数据的完整性。</p>
-<p>（3）HTTPS是现行架构下最安全的解决方案，虽然不是绝对安全，但它大幅增加了中间人攻击的成本。</p>
-<p>（4）谷歌曾在2014年8月份调整搜索引擎算法，并称“比起同等HTTP网站，采用HTTPS加密的网站在搜索结果中的排名将会更高”。</p>
-<p><strong>五、HTTPS的缺点</strong></p>
-<p>虽然说HTTPS有很大的优势，但其相对来说，还是存在不足之处的：</p>
-<p>（1）HTTPS协议握手阶段比较费时，会使页面的加载时间延长近50%，增加10%到20%的耗电；</p>
-<p>（2）HTTPS连接缓存不如HTTP高效，会增加数据开销和功耗，甚至已有的安全措施也会因此而受到影响；</p>
-<p>（3）SSL证书需要钱，功能越强大的证书费用越高，个人网站、小网站没有必要一般不会用。</p>
-<p>（4）SSL证书通常需要绑定IP，不能在同一IP上绑定多个域名，IPv4资源不可能支撑这个消耗。</p>
-<p>（5）HTTPS协议的加密范围也比较有限，在黑客攻击、拒绝服务攻击、服务器劫持等方面几乎起不到什么作用。最关键的，SSL证书的信用链体系并不安全，特别是在某些国家可以控制CA根证书的情况下，中间人攻击一样可行。</p>
-<p><strong>六、http切换到HTTPS</strong></p>
-<p>如果需要将网站从http切换到https到底该如何实现呢？</p>
-<p>这里需要将页面中所有的链接，例如js，css，图片等等链接都由http改为https。例如：<a target="_blank" rel="noopener" href="http://www.baidu.com改为https//www.baidu.com">http://www.baidu.com改为https://www.baidu.com</a></p>
-<p>BTW，这里虽然将http切换为了https，还是建议保留http。所以我们在切换的时候可以做http和https的兼容，具体实现方式是，去掉页面链接中的http头部，这样可以自动匹配http头和https头。例如：将<a target="_blank" rel="noopener" href="http://www.baidu.com改为//www.baidu.com%E3%80%82%E7%84%B6%E5%90%8E%E5%BD%93%E7%94%A8%E6%88%B7%E4%BB%8Ehttp%E7%9A%84%E5%85%A5%E5%8F%A3%E8%BF%9B%E5%85%A5%E8%AE%BF%E9%97%AE%E9%A1%B5%E9%9D%A2%E6%97%B6%EF%BC%8C%E9%A1%B5%E9%9D%A2%E5%B0%B1%E6%98%AFhttp%EF%BC%8C%E5%A6%82%E6%9E%9C%E7%94%A8%E6%88%B7%E6%98%AF%E4%BB%8Ehttps%E7%9A%84%E5%85%A5%E5%8F%A3%E8%BF%9B%E5%85%A5%E8%AE%BF%E9%97%AE%E9%A1%B5%E9%9D%A2%EF%BC%8C%E9%A1%B5%E9%9D%A2%E5%8D%B3%E4%BD%BFhttps%E7%9A%84%E3%80%82">http://www.baidu.com改为//www.baidu.com。然后当用户从http的入口进入访问页面时，页面就是http，如果用户是从https的入口进入访问页面，页面即使https的。</a></p>
-<p><strong>七、 Http调用详细过程</strong></p>
+        <h1 id="Java内存模型（JMM）总结"><a href="#Java内存模型（JMM）总结" class="headerlink" title="Java内存模型（JMM）总结"></a>Java内存模型（JMM）总结</h1><p><img src="/assets/doc-images/v2-01297e43609106bfbdb45f49a0e93f60_1440w.jpg" alt="Java内存模型（JMM）总结"></p>
+<h2 id="Java内存模型（JMM）"><a href="#Java内存模型（JMM）" class="headerlink" title="Java内存模型（JMM）"></a><strong>Java内存模型（JMM）</strong></h2><p>我们常说的JVM内存模式指的是JVM的内存分区；而Java内存模式是一种虚拟机规范。</p>
+<p>Java虚拟机规范中定义了Java内存模型（Java Memory Model，JMM），用于屏蔽掉各种硬件和操作系统的内存访问差异，以实现让Java程序在各种平台下都能达到一致的并发效果，JMM规范了Java虚拟机与计算机内存是如何协同工作的：规定了一个线程如何和何时可以看到由其他线程修改过后的共享变量的值，以及在必须时如何同步的访问共享变量。</p>
+<p>原始的Java内存模型存在一些不足，因此Java内存模型在Java1.5时被重新修订。这个版本的Java内存模型在Java8中仍然在使用。</p>
+<p>Java内存模型（不仅仅是JVM内存分区）：调用栈和本地变量存放在线程栈上，对象存放在堆上。</p>
+<p><img src="/assets/doc-images/v2-bd607bd9a5598a8330ad329033e04b91_1440w.jpg" alt="img"></p>
+<p><img src="/assets/doc-images/v2-a1a75c9f7264cf78d0927663371ca9d2_1440w.jpg" alt="img"></p>
 <ul>
-<li><p>地址解析；浏览器会根据请求地址解析出需要请求的具体域名信息；</p>
-</li>
-<li><p>域名解析：请求发起方需要先知道请求的服务器具体地址，所以在正式请求前需要做域名解析，先发送一个DNS请求以获取目标服务器地址；</p>
+<li>一个本地变量可能是原始类型，在这种情况下，它总是“呆在”线程栈上。</li>
+<li>一个本地变量也可能是指向一个对象的一个引用。在这种情况下，引用（这个本地变量）存放在线程栈上，但是对象本身存放在堆上。</li>
+<li>一个对象可能包含方法，这些方法可能包含本地变量。这些本地变量仍然存放在线程栈上，即使这些方法所属的对象存放在堆上。</li>
+<li>一个对象的成员变量可能随着这个对象自身存放在堆上。不管这个成员变量是原始类型还是引用类型。</li>
+<li>静态成员变量跟随着类定义一起也存放在堆上。</li>
+<li>存放在堆上的对象可以被所有持有对这个对象引用的线程访问。当一个线程可以访问一个对象时，它也可以访问这个对象的成员变量。如果两个线程同时调用同一个对象上的同一个方法，它们将会都访问这个对象的成员变量，但是每一个线程都拥有这个成员变量的私有拷贝。</li>
+</ul>
+<h2 id="硬件内存架构"><a href="#硬件内存架构" class="headerlink" title="硬件内存架构"></a>硬件内存架构</h2><p>现代硬件内存模型与Java内存模型有一些不同，理解内存模型架构以及Java内存模型如何与它协同工作也是非常重要的。</p>
+<p>现代计算机硬件架构的简单图示：</p>
+<p><img src="/assets/doc-images/v2-67833188e191c5e7a11d34e613ca352c_1440w.jpg" alt="img"></p>
 <ul>
-<li>应用层会先构造出DNS的请求报文并调用下层网传输层接口将请求报文向下传递封装最后进行发送；</li>
-<li>传输层收到上层传输的报文数据后，会在其基础上增加一个本层协议的请求头，DNS请求使用UDP作为传输层协议所以会加上UPD的请求头标识；</li>
-<li>网络层收到上层传输数据后会在再增加一个IP的请求头再把数据向下传递；</li>
-<li>数据链路层会在自身的market和目标market信息加上去再通过物理层传输出去；</li>
-<li>一般是路由器进行接收，接收到请求后进行解析判断目标market是否是自己，如果不是丢弃，如果是一路向上解析到网络层判断下一个路由节点market信息是多少知道找到目标具体地址；</li>
+<li><strong>多CPU</strong>：一个现代计算机通常由两个或者多个CPU。其中一些CPU还有多核。从这一点可以看出，在一个有两个或者多个CPU的现代计算机上同时运行多个线程是可能的。每个CPU在某一时刻运行一个线程是没有问题的。这意味着，如果你的Java程序是多线程的，在你的Java程序中每个CPU上一个线程可能同时（并发）执行。</li>
+<li><strong>CPU寄存器</strong>：每个CPU都包含一系列的寄存器，它们是CPU内内存的基础。CPU在寄存器上执行操作的速度远大于在主存上执行的速度。这是因为CPU访问寄存器的速度远大于主存。</li>
+<li><strong>高速缓存cache</strong>：由于计算机的存储设备与处理器的运算速度之间有着几个数量级的差距，所以现代计算机系统都不得不加入一层读写速度尽可能接近处理器运算速度的高速缓存（Cache）来作为内存与处理器之间的缓冲：将运算需要使用到的数据复制到缓存中，让运算能快速进行，当运算结束后再从缓存同步回内存之中，这样处理器就无须等待缓慢的内存读写了。CPU访问缓存层的速度快于访问主存的速度，但通常比访问内部寄存器的速度还要慢一点。每个CPU可能有一个CPU缓存层，一些CPU还有多层缓存。在某一时刻，一个或者多个缓存行（cache lines）可能被读到缓存，一个或者多个缓存行可能再被刷新回主存。</li>
+<li><strong>内存</strong>：一个计算机还包含一个主存。所有的CPU都可以访问主存。主存通常比CPU中的缓存大得多。</li>
+<li><strong>运作原理</strong>：通常情况下，当一个CPU需要读取主存时，它会将主存的部分读到CPU缓存中。它甚至可能将缓存中的部分内容读到它的内部寄存器中，然后在寄存器中执行操作。当CPU需要将结果写回到主存中去时，它会将内部寄存器的值刷新到缓存中，然后在某个时间点将值刷新回主存。</li>
 </ul>
-</li>
-<li><p>请求方收到具体地址信息后应用层开始封装http报文信息；</p>
-</li>
-<li><p>数据一路向下封装到物理层中进行传输；</p>
+<p><strong>一些问题：（多线程环境下尤其）</strong></p>
+<ul>
+<li><strong>缓存一致性问题</strong>：在多处理器系统中，每个处理器都有自己的高速缓存，而它们又共享同一主内存（MainMemory）。基于高速缓存的存储交互很好地解决了处理器与内存的速度矛盾，但是也引入了新的问题：缓存一致性（CacheCoherence）。当多个处理器的运算任务都涉及同一块主内存区域时，将可能导致各自的缓存数据不一致的情况，如果真的发生这种情况，那同步回到主内存时以谁的缓存数据为准呢？为了解决一致性的问题，需要各个处理器访问缓存时都遵循一些协议，在读写时要根据协议来进行操作，这类协议有MSI、MESI（IllinoisProtocol）、MOSI、Synapse、Firefly及DragonProtocol，等等：</li>
+</ul>
+<p><img src="/assets/doc-images/v2-1a021d2833b7a537dcdfdf0025f52a6c_1440w.jpg" alt="img"></p>
+<ul>
+<li><strong>指令重排序问题</strong>：为了使得处理器内部的运算单元能尽量被充分利用，处理器可能会对输入代码进行乱序执行（Out-Of-Order Execution）优化，处理器会在计算之后将乱序执行的结果重组，保证该结果与顺序执行的结果是一致的，但并不保证程序中各个语句计算的先后顺序与输入代码中的顺序一致。因此，如果存在一个计算任务依赖另一个计算任务的中间结果，那么其顺序性并不能靠代码的先后顺序来保证。与处理器的乱序执行优化类似，Java虚拟机的即时编译器中也有类似的指令重排序（Instruction Reorder）优化</li>
+</ul>
+<h2 id="Java内存模型和硬件内存架构之间的桥接"><a href="#Java内存模型和硬件内存架构之间的桥接" class="headerlink" title="Java内存模型和硬件内存架构之间的桥接"></a><strong>Java内存模型和硬件内存架构之间的桥接</strong></h2><p>Java内存模型与硬件内存架构之间存在差异。硬件内存架构没有区分线程栈和堆。对于硬件，所有的线程栈和堆都分布在主内存中。部分线程栈和堆可能有时候会出现在CPU缓存中和CPU内部的寄存器中。如下图所示：</p>
+<p><img src="/assets/doc-images/v2-1a7b7bb752799b6c067a0eaca0a1a9b2_1440w.jpg" alt="img"></p>
+<p>从抽象的角度来看，JMM定义了线程和主内存之间的抽象关系：</p>
+<ul>
+<li>线程之间的共享变量存储在主内存（Main Memory）中</li>
+<li>每个线程都有一个私有的本地内存（Local Memory），本地内存是JMM的一个抽象概念，并不真实存在，它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器优化。本地内存中存储了该线程以读/写共享变量的拷贝副本。</li>
+<li>从更低的层次来说，主内存就是硬件的内存，而为了获取更好的运行速度，虚拟机及硬件系统可能会让工作内存优先存储于寄存器和高速缓存中。</li>
+<li>Java内存模型中的线程的工作内存（working memory）是cpu的寄存器和高速缓存的抽象描述。而JVM的静态内存储模型（JVM内存模型）只是一种对内存的物理划分而已，它只局限在内存，而且只局限在JVM的内存。</li>
+</ul>
+<p><img src="/assets/doc-images/v2-af520d543f0f4f205f822ec3b151ad46_1440w.jpg" alt="img"></p>
+<p><img src="/assets/doc-images/v2-037270b0876b6af680d1832bcc9dca32_1440w.jpg" alt="img"></p>
+<h2 id="JMM模型下的线程间通信："><a href="#JMM模型下的线程间通信：" class="headerlink" title="JMM模型下的线程间通信："></a><strong>JMM模型下的线程间通信：</strong></h2><p>线程间通信必须要经过主内存。</p>
+<p>如下，如果线程A与线程B之间要通信的话，必须要经历下面2个步骤：</p>
+<p>1）线程A把本地内存A中更新过的共享变量刷新到主内存中去。</p>
+<p>2）线程B到主内存中去读取线程A之前已更新过的共享变量。</p>
+<p><img src="/assets/doc-images/v2-8750cb14ecaa93509e3f1981563513e1_1440w.jpg" alt="img"></p>
+<p>关于主内存与工作内存之间的具体交互协议，即一个变量如何从主内存拷贝到工作内存、如何从工作内存同步到主内存之间的实现细节，Java内存模型定义了以下八种操作来完成：</p>
+<ul>
+<li><strong>lock（锁定）</strong>：作用于主内存的变量，把一个变量标识为一条线程独占状态。</li>
+<li><strong>unlock（解锁）</strong>：作用于主内存变量，把一个处于锁定状态的变量释放出来，释放后的变量才可以被其他线程锁定。</li>
+<li><strong>read（读取）</strong>：作用于主内存变量，把一个变量值从主内存传输到线程的工作内存中，以便随后的load动作使用</li>
+<li><strong>load（载入）</strong>：作用于工作内存的变量，它把read操作从主内存中得到的变量值放入工作内存的变量副本中。</li>
+<li><strong>use（使用）</strong>：作用于工作内存的变量，把工作内存中的一个变量值传递给执行引擎，每当虚拟机遇到一个需要使用变量的值的字节码指令时将会执行这个操作。</li>
+<li><strong>assign（赋值）</strong>：作用于工作内存的变量，它把一个从执行引擎接收到的值赋值给工作内存的变量，每当虚拟机遇到一个给变量赋值的字节码指令时执行这个操作。</li>
+<li><strong>store（存储）</strong>：作用于工作内存的变量，把工作内存中的一个变量的值传送到主内存中，以便随后的write的操作。</li>
+<li><strong>write（写入）</strong>：作用于主内存的变量，它把store操作从工作内存中一个变量的值传送到主内存的变量中。</li>
+</ul>
+<p>Java内存模型还规定了在执行上述八种基本操作时，必须满足如下规则：</p>
+<ul>
+<li>如果要把一个变量从主内存中复制到工作内存，就需要按顺寻地执行read和load操作， 如果把变量从工作内存中同步回主内存中，就要按顺序地执行store和write操作。但Java内存模型只要求上述操作必须按顺序执行，而没有保证必须是连续执行。</li>
+<li>不允许read和load、store和write操作之一单独出现</li>
+<li>不允许一个线程丢弃它的最近assign的操作，即变量在工作内存中改变了之后必须同步到主内存中。</li>
+<li>不允许一个线程无原因地（没有发生过任何assign操作）把数据从工作内存同步回主内存中。</li>
+<li>一个新的变量只能在主内存中诞生，不允许在工作内存中直接使用一个未被初始化（load或assign）的变量。即就是对一个变量实施use和store操作之前，必须先执行过了assign和load操作。</li>
+<li>一个变量在同一时刻只允许一条线程对其进行lock操作，但lock操作可以被同一条线程重复执行多次，多次执行lock后，只有执行相同次数的unlock操作，变量才会被解锁。lock和unlock必须成对出现</li>
+<li>如果对一个变量执行lock操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量前需要重新执行load或assign操作初始化变量的值</li>
+<li>如果一个变量事先没有被lock操作锁定，则不允许对它执行unlock操作；也不允许去unlock一个被其他线程锁定的变量。</li>
+<li>对一个变量执行unlock操作之前，必须先把此变量同步到主内存中（执行store和write操作）。</li>
+</ul>
+<h2 id="Java内存模型解决的问题"><a href="#Java内存模型解决的问题" class="headerlink" title="Java内存模型解决的问题"></a><strong>Java内存模型解决的问题</strong></h2><p>当对象和变量被存放在计算机中各种不同的内存区域中时，就可能会出现一些具体的问题。Java内存模型建立所围绕的问题：在多线程并发过程中，如何处理多线程读同步问题与可见性（多线程缓存与指令重排序）、多线程写同步问题与原子性（多线程竞争race condition）。</p>
+<p><strong>1、多线程读同步与可见性</strong></p>
+<p><strong>可见性（共享对象可见性）</strong>：线程对共享变量修改的可见性。当一个线程修改了共享变量的值，其他线程能够立刻得知这个修改</p>
+<p><strong>线程缓存导致的可见性问题：</strong></p>
+<p>如果两个或者更多的线程在没有正确的使用volatile声明或者同步的情况下共享一个对象，一个线程更新这个共享对象可能对其它线程来说是不可见的：共享对象被初始化在主存中。跑在CPU上的一个线程将这个共享对象读到CPU缓存中，然后修改了这个对象。只要CPU缓存没有被刷新会主存，对象修改后的版本对跑在其它CPU上的线程都是不可见的。这种方式可能导致每个线程拥有这个共享对象的私有拷贝，每个拷贝停留在不同的CPU缓存中。</p>
+<p>下图示意了这种情形。跑在左边CPU的线程拷贝这个共享对象到它的CPU缓存中，然后将count变量的值修改为2。这个修改对跑在右边CPU上的其它线程是不可见的，因为修改后的count的值还没有被刷新回主存中去。</p>
+<p><img src="/assets/doc-images/v2-7abd7500588012315f4f0e068e20e341_1440w.jpg" alt="img"></p>
+<p>解决这个内存可见性问题你可以使用：</p>
+<ul>
+<li>Java中的volatile关键字：volatile关键字可以保证直接从主存中读取一个变量，如果这个变量被修改后，总是会被写回到主存中去。Java内存模型是通过在变量修改后将新值同步回主内存，在变量读取前从主内存刷新变量值这种依赖主内存作为传递媒介的方式来实现可见性的，无论是普通变量还是volatile变量都是如此，普通变量与volatile变量的区别是：volatile的特殊规则保证了新值能立即同步到主内存，以及每个线程在每次使用volatile变量前都立即从主内存刷新。因此我们可以说volatile保证了多线程操作时变量的可见性，而普通变量则不能保证这一点。</li>
+<li>Java中的synchronized关键字：同步快的可见性是由“如果对一个变量执行lock操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量前需要重新执行load或assign操作初始化变量的值”、“对一个变量执行unlock操作之前，必须先把此变量同步回主内存中（执行store和write操作）”这两条规则获得的。</li>
+<li>Java中的final关键字：final关键字的可见性是指，被final修饰的字段在构造器中一旦被初始化完成，并且构造器没有把“this”的引用传递出去（this引用逃逸是一件很危险的事情，其他线程有可能通过这个引用访问到“初始化了一半”的对象），那么在其他线程就能看见final字段的值（无须同步）</li>
+</ul>
+<p><strong>重排序导致的可见性问题：</strong></p>
+<p>Java程序中天然的有序性可以总结为一句话：如果在本地线程内观察，所有操作都是有序的（“线程内表现为串行”(Within-Thread As-If-Serial Semantics)）；如果在一个线程中观察另一个线程，所有操作都是无序的（“指令重排序”现象和“线程工作内存与主内存同步延迟”现象）。</p>
+<p>Java语言提供了volatile和synchronized两个关键字来保证线程之间操作的有序性：</p>
+<ul>
+<li>volatile关键字本身就包含了禁止指令重排序的语义</li>
+<li>synchronized则是由“一个变量在同一个时刻只允许一条线程对其进行lock操作”这条规则获得的，这个规则决定了持有同一个锁的两个同步块只能串行地进入</li>
+</ul>
+<p><strong>指令序列的重排序：</strong></p>
+<p>1）编译器优化的重排序。编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序。</p>
+<p>2）指令级并行的重排序。现代处理器采用了指令级并行技术（Instruction-LevelParallelism，ILP）来将多条指令重叠执行。如果不存在数据依赖性，处理器可以改变语句对应机器指令的执行顺序。</p>
+<p>3）内存系统的重排序。由于处理器使用缓存和读/写缓冲区，这使得加载和存储操作看上去可能是在乱序执行。</p>
+<p><img src="/assets/doc-images/v2-a92ef160e8ba8d33541fb57b8a32de9c_1440w.jpg" alt="img"></p>
+<p>每个处理器上的写缓冲区，仅仅对它所在的处理器可见。这会导致处理器执行内存操作的顺序可能会与内存实际的操作执行顺序不一致。由于现代的处理器都会使用写缓冲区，因此现代的处理器都会允许对写-读操作进行重排序：</p>
+<p><img src="/assets/doc-images/v2-f8a75081bcad888a7e73b4785a672e5b_1440w.jpg" alt="img"></p>
+<p><strong>数据依赖：</strong></p>
+<p>编译器和处理器在重排序时，会遵守数据依赖性，编译器和处理器不会改变存在数据依赖关系的两个操作的执行顺序。（这里所说的数据依赖性仅针对单个处理器中执行的指令序列和单个线程中执行的操作，不同处理器之间和不同线程之间的数据依赖性不被编译器和处理器考虑）</p>
+<p><img src="/assets/doc-images/v2-36500a7455955c58d02138913d5c0cd7_1440w.jpg" alt="img"></p>
+<p><strong>指令重排序对内存可见性的影响：</strong></p>
+<p><img src="/assets/doc-images/v2-8ef063a1b514d9cfbdf059984f83ed2f_1440w.jpg" alt="img"></p>
+<p>当1和2之间没有数据依赖关系时，1和2之间就可能被重排序（3和4类似）。这样的结果就是：读线程B执行4时，不一定能看到写线程A在执行1时对共享变量的修改。</p>
+<p><strong>指令重排序改变多线程程序的执行结果例子：</strong></p>
+<p><img src="/assets/doc-images/v2-111bfd93bcd92fd2ee495a12cb34f9aa_1440w.jpg" alt="img"></p>
+<p>flag变量是个标记，用来标识变量a是否已被写入。这里假设有两个线程A和B，A首先执行writer()方法，随后B线程接着执行reader()方法。线程B在执行操作4时，能否看到线程A在操作1对共享变量a的写入呢？</p>
+<p>答案是：不一定能看到。</p>
+<blockquote>
+<p>​       为了遵守as-if-serial语义，编译器和处理器不会对存在<strong>数据依赖关系</strong>的操作做重排序。但是as-if-serial规则允许对<strong>有控制依赖关系</strong>的指令做重排序，因为在单线程程序中，对存在控制依赖的操作重排序，不会改变执行结果，但是多线程下确有可能会改变结果。</p>
+<p>​      <code>flag</code>和<code>i</code>存在控制依赖关系。当指令重排序后，2这一步会将结果值写入重排序缓冲（Reorder Buffer，ROB）的硬件缓存中，当判断为true时，再把结果值写入变量ｉ中。</p>
+</blockquote>
+<p>由于操作1和操作2没有数据依赖关系，编译器和处理器可以对这两个操作重排序；同样，操作3和操作4没有数据依赖关系，编译器和处理器也可以对这两个操作重排序。</p>
+<p><strong>as-if-serial语义：</strong></p>
+<p>不管怎么重排序（编译器和处理器为了提高并行度），（单线程）程序的执行结果不能被改变。（编译器、runtime和处理器都必须遵守as-if-serial语义）</p>
+<p><strong>happens before：</strong></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/434045508">Happens-before</a></p>
+<p>从JDK 5开始，Java使用新的JSR-133内存模型，JSR-133使用happens-before的概念来阐述操作之间的内存可见性：在JMM中，如果一个操作执行的结果需要对另一个操作可见（两个操作既可以是在一个线程之内，也可以是在不同线程之间），那么这两个操作之间必须要存在happens-before关系：</p>
+<ul>
+<li>程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作。</li>
+<li>监视器锁规则：对一个锁的解锁，happens-before于随后对这个锁的加锁。</li>
+<li>volatile变量规则：对一个volatile域的写，happens-before于任意后续对这个volatile域的读。</li>
+<li>传递性：如果A happens-before B，且B happens-before C，那么A happens-before C。</li>
+</ul>
+<p>一个happens-before规则对应于一个或多个编译器和处理器重排序规则</p>
+<p><strong>内存屏障禁止特定类型的处理器重排序：</strong></p>
+<p>重排序可能会导致多线程程序出现内存可见性问题。对于处理器重排序，JMM的处理器重排序规则会要求Java编译器在生成指令序列时，插入特定类型的内存屏障（Memory Barriers，Intel称之为Memory Fence）指令，通过内存屏障指令来禁止特定类型的处理器重排序。通过禁止特定类型的编译器重排序和处理器重排序，为程序员提供一致的内存可见性保证。</p>
+<p>为了保证内存可见性，Java编译器在生成指令序列的适当位置会插入内存屏障指令来禁止特定类型的处理器重排序。</p>
+<p><img src="/assets/doc-images/v2-6db326ce298332a673151117edcb1fcd_1440w.png" alt="img"></p>
+<p>StoreLoad Barriers是一个“全能型”的屏障，它同时具有其他3个屏障的效果。现代的多处理器大多支持该屏障（其他类型的屏障不一定被所有处理器支持）。执行该屏障开销会很昂贵，因为当前处理器通常要把写缓冲区中的数据全部刷新到内存中（Buffer Fully Flush）。</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/7a6118b2d794">指令重排</a></p>
+<p><strong>2、多线程写同步与原子性</strong></p>
+<p><strong>多线程竞争（Race Conditions）问题</strong>：当读，写和检查共享变量时出现race conditions。</p>
+<p>如果两个或者更多的线程共享一个对象，多个线程在这个共享对象上更新变量，就有可能发生race conditions。</p>
+<p>想象一下，如果线程A读一个共享对象的变量count到它的CPU缓存中。再想象一下，线程B也做了同样的事情，但是往一个不同的CPU缓存中。现在线程A将count加1，线程B也做了同样的事情。现在count已经被增加了两次，每个CPU缓存中一次。如果这些增加操作被顺序的执行，变量count应该被增加两次，然后原值+2被写回到主存中去。然而，两次增加都是在没有适当的同步下并发执行的。无论是线程A还是线程B将count修改后的版本写回到主存中取，修改后的值仅会被原值大1，尽管增加了两次：</p>
+<p><img src="/assets/doc-images/v2-02ae4be429d4b48a18442efe91131155_1440w.png" alt="img"></p>
+<p>解决这个问题可以使用Java同步块。一个同步块可以保证在同一时刻仅有一个线程可以进入代码的临界区。同步块还可以保证代码块中所有被访问的变量将会从主存中读入，当线程退出同步代码块时，所有被更新的变量都会被刷新回主存中去，不管这个变量是否被声明为volatile。</p>
+<p><strong>使用原子性保证多线程写同步问题：</strong></p>
+<ul>
+<li><p><strong>原子性：</strong>指一个操作是按原子的方式执行的。要么该操作不被执行；要么以原子方式执行，即执行过程中不会被其它线程中断。</p>
+<ul>
+<li>Reads and writes are atomic for reference variables and for most primitive variables (all types except long and double).</li>
+<li>Reads and writes are atomic for all variables declared <strong>volatile</strong> (including long and double variables).</li>
+</ul>
+<p>（<a href="https://link.zhihu.com/?target=https://docs.oracle.com/javase/tutorial/essential/concurrency/atomic.html">https://docs.oracle.com/javase/tutorial/essential/concurrency/atomic.html</a>）</p>
+<p><strong>实现原子性：</strong></p>
+<ul>
+<li>由Java内存模型来直接保证的原子性变量操作包括read、load、assign、use、store、write，我们大致可以认为基本数据类型变量、引用类型变量、声明为volatile的任何类型变量的访问读写是具备原子性的（long和double的非原子性协定：对于64位的数据，如long和double，Java内存模型规范允许虚拟机将没有被volatile修饰的64位数据的读写操作划分为两次32位的操作来进行，即允许虚拟机实现选择可以不保证64位数据类型的load、store、read和write这四个操作的原子性，即如果有多个线程共享一个并未声明为volatile的long或double类型的变量，并且同时对它们进行读取和修改操作，那么某些线程可能会读取到一个既非原值，也不是其他线程修改值的代表了“半个变量”的数值。但由于目前各种平台下的商用虚拟机几乎都选择把64位数据的读写操作作为原子操作来对待，因此在编写代码时一般也不需要将用到的long和double变量专门声明为volatile）。这些类型变量的读、写天然具有原子性，但类似于 “基本变量++” / “volatile++” 这种复合操作并没有原子性。</li>
+<li>如果应用场景需要一个更大范围的原子性保证，需要使用同步块技术。Java内存模型提供了lock和unlock操作来满足这种需求。虚拟机提供了字节码指令monitorenter和monitorexist来隐式地使用这两个操作，这两个字节码指令反映到Java代码中就是同步快——synchronized关键字。</li>
+</ul>
+<h2 id="JMM对特殊Java语义的特殊规则支持"><a href="#JMM对特殊Java语义的特殊规则支持" class="headerlink" title="JMM对特殊Java语义的特殊规则支持"></a><strong>JMM对特殊Java语义的特殊规则支持</strong></h2><p><a href="https://link.zhihu.com/?target=http://mp.weixin.qq.com/s?__biz=MzI3NzM2OTQ5Mg==&mid=2247484289&idx=1&sn=bdf6721e01c613bfb1458a8584e80800&chksm=eb66047adc118d6c395c14e5b953686bfdfac93fd6fa8c0731bb89aadd7437bba800d034659d&scene=21%23wechat_redirect">volatile总结</a> （保证内存可见性：Lock前缀的指令、内存屏障禁止重排序）</p>
+<p><a href="https://link.zhihu.com/?target=http://mp.weixin.qq.com/s?__biz=MzI3NzM2OTQ5Mg==&mid=2247484280&idx=1&sn=8de305338c5ab348c3e2a784084e4306&chksm=eb660483dc118d95e9bcde15a01103f818ed2fd399989f36dc2d57740a305e91cf986d4f5a64&scene=21%23wechat_redirect">synchronized总结</a> （保证内存可见性和操作原子性：互斥锁；锁优化）</p>
+<blockquote>
+<p>参考来源：<br>《Java并发编程的艺术》<br>《深入理解Java内存模型》<br>《深入理解Java虚拟机》<br><a href="https://link.zhihu.com/?target=http://ifeve.com/java-memory-model-6/">http://ifeve.com/java-memory-model-6/</a><br>[<a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-concurrency/java-memory-model.html]">http://tutorials.jenkov.com/java-concurrency/java-memory-model.html]</a>(</p>
+</blockquote>
 </li>
 </ul>
-<p><img src="/assets/doc-images/5b766a58b3844740a15383ca476ce134.png" alt="在这里插入图片描述"></p>
 
       
 
@@ -2579,7 +2681,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">计算机基础</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">Java基础</a>
         		</li>
       		
 		</ul>
@@ -2589,7 +2691,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2023/05/29/Https/">展开全文 >></a>
+          <a class="article-more-a" href="/2023/05/29/JMM/">展开全文 >></a>
         </p>
       
 
@@ -2700,19 +2802,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">Dubbo</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">计算机基础</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">Dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">计算机基础</a>
               </li>
              
               <li class="article-tag-list-item">
